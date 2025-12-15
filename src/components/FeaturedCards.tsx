@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 interface FeaturedCard {
@@ -68,11 +67,16 @@ export default function FeaturedCards() {
     <section>
       <div className="flex gap-4 overflow-x-auto pb-2">
         {featuredCards.map((card) => (
-          <Link key={card.title} href={card.href} className="group w-[38%] flex-shrink-0">
-            <div className="relative aspect-[16/9] overflow-hidden rounded-2xl bg-zinc-800">
-            </div>
+          <Link
+            key={card.title}
+            href={card.href}
+            className="group w-[38%] flex-shrink-0"
+          >
+            <div className="relative aspect-[16/9] overflow-hidden rounded-2xl bg-zinc-800"></div>
             <div className="mt-2">
-              <h4 className="font-heading text-sm text-white transition-colors duration-300 group-hover:text-cyan-400">{card.title}</h4>
+              <h4 className="font-heading text-sm text-white transition-colors duration-300 group-hover:text-cyan-400">
+                {card.title}
+              </h4>
               <p className="text-xs text-gray-400">{card.description}</p>
             </div>
           </Link>

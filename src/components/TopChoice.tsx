@@ -126,7 +126,7 @@ export default function TopChoice() {
             <div className="relative h-40 w-full overflow-hidden bg-zinc-800">
               {card.badge && (
                 <span
-                  className={`${badgeStyles[card.badge.variant]} absolute left-3 top-3 rounded px-2 py-0.5 text-[10px] font-medium text-white`}
+                  className={`${badgeStyles[card.badge.variant]} absolute top-3 left-3 rounded px-2 py-0.5 text-[10px] font-medium text-white`}
                 >
                   {card.badge.text}
                 </span>
@@ -134,8 +134,12 @@ export default function TopChoice() {
             </div>
             <div className="flex h-16 items-start justify-between gap-2 p-3">
               <div className="min-w-0 flex-1">
-                <h4 className="truncate text-base font-medium text-white transition-colors duration-300 group-hover:text-cyan-400">{card.title}</h4>
-                <p className="truncate text-xs text-gray-400">{card.description}</p>
+                <h4 className="truncate text-base font-medium text-white transition-colors duration-300 group-hover:text-cyan-400">
+                  {card.title}
+                </h4>
+                <p className="truncate text-xs text-gray-400">
+                  {card.description}
+                </p>
               </div>
               <span className="flex-shrink-0 text-lg text-gray-400">→</span>
             </div>

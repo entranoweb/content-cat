@@ -3,7 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Content Cat",
-  description: "Create authentic images and videos with natural texture and easy style",
+  description:
+    "Create authentic images and videos with natural texture and easy style",
 };
 
 export default function RootLayout({
@@ -20,14 +21,13 @@ export default function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
           href="https://fonts.googleapis.com/css2?family=BBH+Bartle&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="antialiased">
-        {children}
-      </body>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }

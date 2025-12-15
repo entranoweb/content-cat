@@ -3,6 +3,7 @@ import Link from "next/link";
 const navItems = [
   { label: "Image", href: "/image" },
   { label: "Video", href: "/video" },
+  { label: "Characters", href: "/create-character" },
 ];
 
 export default function Header() {

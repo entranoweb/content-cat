@@ -4,12 +4,39 @@ import { useState } from "react";
 import Header from "@/components/Header";
 import UploadModal from "@/components/UploadModal";
 
-
 const previewImages = [
-  { id: 1, image: "/images/character-1.jpg", rotation: "-rotate-12", size: "h-40 w-32", z: "z-10", offset: "-mr-4" },
-  { id: 2, image: "/images/character-2.jpg", rotation: "rotate-3", size: "h-52 w-40", z: "z-20", offset: "-mr-6" },
-  { id: 3, image: "/images/character-3.jpg", rotation: "-rotate-6", size: "h-44 w-34", z: "z-30", offset: "-mr-3" },
-  { id: 4, image: "/images/character-4.jpg", rotation: "rotate-10", size: "h-48 w-36", z: "z-20", offset: "" },
+  {
+    id: 1,
+    image: "/images/character-1.jpg",
+    rotation: "-rotate-12",
+    size: "h-40 w-32",
+    z: "z-10",
+    offset: "-mr-4",
+  },
+  {
+    id: 2,
+    image: "/images/character-2.jpg",
+    rotation: "rotate-3",
+    size: "h-52 w-40",
+    z: "z-20",
+    offset: "-mr-6",
+  },
+  {
+    id: 3,
+    image: "/images/character-3.jpg",
+    rotation: "-rotate-6",
+    size: "h-44 w-34",
+    z: "z-30",
+    offset: "-mr-3",
+  },
+  {
+    id: 4,
+    image: "/images/character-4.jpg",
+    rotation: "rotate-10",
+    size: "h-48 w-36",
+    z: "z-20",
+    offset: "",
+  },
 ];
 
 const galleryImages = [
@@ -54,7 +81,7 @@ export default function CreateCharacter() {
         {/* CTA Button */}
         <button
           onClick={() => setIsModalOpen(true)}
-          className="mb-4 flex items-center gap-2 rounded-lg bg-cyan-400 px-6 py-3 font-semibold text-black shadow-lg shadow-cyan-400/25 transition-all duration-300 hover:bg-cyan-500 hover:shadow-cyan-500/30"
+          className="mb-4 flex cursor-pointer items-center gap-2 rounded-lg bg-cyan-400 px-6 py-3 font-semibold text-black shadow-lg shadow-cyan-400/25 transition-all duration-300 hover:bg-cyan-500 hover:shadow-cyan-500/30"
         >
           <span>✦</span>
           Create Character

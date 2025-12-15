@@ -104,8 +104,8 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
             <div className="grid h-8 w-8 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-400">
               <CheckIcon />
             </div>
-            <div className="grid auto-rows-min grid-flow-row">
-              <p className="font-heading text-sm font-bold uppercase text-white">
+            <div className="grid grid-flow-row auto-rows-min">
+              <p className="font-heading text-sm font-bold text-white uppercase">
                 Upload 20+ photos for best results
               </p>
               <p className="text-sm text-gray-400">
@@ -137,8 +137,8 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
             <div className="grid h-8 w-8 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 text-red-500">
               <XIcon />
             </div>
-            <div className="grid auto-rows-min grid-flow-row">
-              <p className="font-heading text-sm font-bold uppercase text-white">
+            <div className="grid grid-flow-row auto-rows-min">
+              <p className="font-heading text-sm font-bold text-white uppercase">
                 Avoid These Types of Photos
               </p>
               <p className="text-sm text-gray-400">
@@ -165,7 +165,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
 
         {/* Upload Button */}
         <div className="flex justify-center">
-          <label className="inline-grid h-12 cursor-pointer grid-flow-col items-center gap-2 rounded-xl bg-cyan-400 px-6 font-medium text-black transition-all duration-300 hover:bg-cyan-500 md:h-14 md:w-48">
+          <label className="inline-grid h-12 cursor-pointer grid-flow-col items-center justify-center gap-2 rounded-xl bg-cyan-400 px-6 font-medium text-black transition-all duration-300 hover:bg-cyan-500 md:h-14 md:w-48">
             <UploadIcon />
             Upload images
             <input
