@@ -56,3 +56,30 @@ select,
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* Animated gradient text */
+.gradient-shift {
+  background: linear-gradient(
+    90deg,
+    #ffffff 0%,
+    #22d3ee 25%,
+    #00ffff 50%,
+    #22d3ee 75%,
+    #ffffff 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 4s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}

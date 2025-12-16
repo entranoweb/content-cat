@@ -10,7 +10,7 @@ export default function Header() {
   return (
     <header className="flex items-center justify-between px-6 py-4">
       <div className="flex items-center gap-8">
-        <Link href="/" className="font-heading text-xl text-white">
+        <Link href="/" className="font-heading text-xl gradient-shift">
           Content Cat
         </Link>
         <nav className="flex items-center gap-6">
