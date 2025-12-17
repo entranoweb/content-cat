@@ -182,7 +182,7 @@ export default function TopChoice() {
           <span>→</span>
         </Link>
       </div>
-      <div className="flex gap-4 overflow-x-auto pb-2">
+      <div className="hide-scrollbar flex gap-4 overflow-x-auto pb-2">
         {toolCards.map((card) => (
           <Link
             key={card.title}

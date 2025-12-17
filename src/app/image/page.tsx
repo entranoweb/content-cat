@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import Slider from "@/components/Slider";
 import ImagePromptForm from "@/components/ImagePromptForm";
 
 export default function ImagePage() {
+  const searchParams = useSearchParams();
+  const initialPrompt = searchParams.get("prompt") || "";
   const [zoomLevel, setZoomLevel] = useState(3);
 
   const handleGenerate = (data: {
@@ -70,7 +73,10 @@ export default function ImagePage() {
       </div>
 
       {/* Bottom Prompt Form */}
-      <ImagePromptForm onSubmit={handleGenerate} />
+      <ImagePromptForm
+        onSubmit={handleGenerate}
+        initialPrompt={initialPrompt}
+      />
     </div>
   );
 }

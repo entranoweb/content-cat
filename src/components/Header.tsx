@@ -4,13 +4,14 @@ const navItems = [
   { label: "Image", href: "/image" },
   { label: "Video", href: "/video" },
   { label: "Characters", href: "/create-character" },
+  { label: "Prompts", href: "/prompts" },
 ];
 
 export default function Header() {
   return (
     <header className="flex items-center justify-between px-6 py-4">
       <div className="flex items-center gap-8">
-        <Link href="/" className="font-heading text-xl gradient-shift">
+        <Link href="/" className="font-heading gradient-shift text-xl">
           Content Cat
         </Link>
         <nav className="flex items-center gap-6">

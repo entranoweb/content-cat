@@ -47,6 +47,11 @@ select,
   cursor: pointer;
 }
 
+/* Heading font letter spacing */
+.font-heading {
+  letter-spacing: 0.02em;
+}
+
 /* Hide scrollbar utility */
 .hide-scrollbar {
   -ms-overflow-style: none;

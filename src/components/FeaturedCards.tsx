@@ -54,7 +54,7 @@ const featuredCards: FeaturedCard[] = [
 export default function FeaturedCards() {
   return (
     <section>
-      <div className="flex gap-4 overflow-x-auto pb-2">
+      <div className="hide-scrollbar flex gap-4 overflow-x-auto pb-2">
         {featuredCards.map((card) => (
           <Link
             key={card.title}
@@ -66,7 +66,7 @@ export default function FeaturedCards() {
                 src={card.image}
                 alt={card.title}
                 fill
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                className="object-cover"
               />
             </div>
             <div className="mt-2">

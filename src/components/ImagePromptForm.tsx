@@ -280,10 +280,14 @@ interface ImagePromptFormProps {
     count: number;
     aspectRatio: string;
   }) => void;
+  initialPrompt?: string;
 }
 
-export default function ImagePromptForm({ onSubmit }: ImagePromptFormProps) {
-  const [prompt, setPrompt] = useState("");
+export default function ImagePromptForm({
+  onSubmit,
+  initialPrompt = "",
+}: ImagePromptFormProps) {
+  const [prompt, setPrompt] = useState(initialPrompt);
   const [model, setModel] = useState("nano_banana");
   const [imageCount, setImageCount] = useState(1);
   const [aspectRatio, setAspectRatio] = useState("auto");
