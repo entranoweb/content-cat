@@ -20,11 +20,10 @@ export default function ImagePage() {
   const initialCharacterId = searchParams.get("characterId") || undefined;
   const initialProductId = searchParams.get("productId") || undefined;
   const initialSubModel = initialCharacterId || initialProductId || undefined;
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
+  const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([])
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
-  const [generatingCount, setGeneratingCount] = useState(0);
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(
     null
   );
@@ -109,7 +108,7 @@ export default function ImagePage() {
     }
   };
 
-  const handleGenerate = async (data: {
+  const handleGenerate = (data: {
     prompt: string;
     model: string;
     count: number;
@@ -118,77 +117,89 @@ export default function ImagePage() {
     outputFormat: string;
     referenceImages: string[];
   }) => {
-    setIsGenerating(true);
-    setGeneratingCount(data.count);
+    // Add to pending count immediately (fire-and-forget style)
+    setPendingCount((prev) => prev + data.count);
 
-    try {
-      // Generate images sequentially based on count
-      const newImages: GeneratedImage[] = [];
+    // Process generation in background without blocking
+    const generateImages = async () => {
+      let successCount = 0;
 
       for (let i = 0; i < data.count; i++) {
-        const response = await fetch("/api/generate-image", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            prompt: data.prompt,
-            aspectRatio: data.aspectRatio,
-            resolution: data.resolution,
-            outputFormat: data.outputFormat,
-            imageUrls: data.referenceImages,
-          }),
-        });
+        try {
+          const response = await fetch("/api/generate-image", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              prompt: data.prompt,
+              aspectRatio: data.aspectRatio,
+              resolution: data.resolution,
+              outputFormat: data.outputFormat,
+              imageUrls: data.referenceImages,
+            }),
+          });
 
-        const result = await response.json();
+          const result = await response.json();
 
-        if (!response.ok) {
-          toast.error(result.error || "Failed to generate image");
-          break; // Stop generating more if one fails
-        }
+          if (!response.ok) {
+            toast.error(result.error || "Failed to generate image");
+            // Decrement pending count for this failed generation
+            setPendingCount((prev) => Math.max(0, prev - 1));
+            continue; // Try next one instead of breaking
+          }
 
-        if (result.resultUrls && result.resultUrls.length > 0) {
-          for (const url of result.resultUrls) {
-            // Save to database
-            const saveResponse = await fetch("/api/images", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                url,
-                prompt: data.prompt,
-                aspectRatio: data.aspectRatio,
-              }),
-            });
+          if (result.resultUrls && result.resultUrls.length > 0) {
+            for (const url of result.resultUrls) {
+              // Save to database
+              const saveResponse = await fetch("/api/images", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  url,
+                  prompt: data.prompt,
+                  aspectRatio: data.aspectRatio,
+                }),
+              });
 
-            if (saveResponse.ok) {
-              const savedImage = await saveResponse.json();
-              newImages.push(savedImage);
+              if (saveResponse.ok) {
+                const savedImage = await saveResponse.json();
+                // Add each image immediately as it's generated
+                setGeneratedImages((prev) => [savedImage, ...prev]);
+                successCount++;
+              }
             }
           }
+
+          // Decrement pending count after successful generation
+          setPendingCount((prev) => Math.max(0, prev - 1));
+        } catch (err) {
+          toast.error(
+            err instanceof Error ? err.message : "Something went wrong. Try again."
+          );
+          // Decrement pending count for this failed generation
+          setPendingCount((prev) => Math.max(0, prev - 1));
         }
       }
 
-      setGeneratedImages((prev) => [...newImages, ...prev]);
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Something went wrong. Try again."
-      );
-    } finally {
-      setIsGenerating(false);
-    }
+      if (successCount > 0) {
+        toast.success(`Generated ${successCount} image${successCount > 1 ? 's' : ''}`);
+      }
+    };
+
+    // Start generation without awaiting (fire-and-forget)
+    generateImages();
   };
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-[#0a0a0a]">
       <Header />
-      <div className="flex flex-1 flex-col gap-2.5 p-4">
-        {/* Main Content Area */}
-        <div className="min-h-0 flex-1">
-          {/* Gallery Grid */}
-          <div
-            id="soul-feed-scroll"
-            className="hide-scrollbar h-full overflow-auto pb-40"
-          >
+      <div className="flex min-h-0 flex-1 flex-col p-4">
+        {/* Gallery Grid - scrollable container */}
+        <div
+          id="soul-feed-scroll"
+          className="hide-scrollbar min-h-0 flex-1 overflow-y-auto pb-48"
+        >
             {/* Loading state */}
             {isLoading && (
               <div className="flex h-full w-full items-center justify-center">
@@ -202,13 +213,13 @@ export default function ImagePage() {
             )}
 
             {/* Generated Images Display */}
-            {!isLoading && (generatedImages.length > 0 || isGenerating) ? (
+            {!isLoading && (generatedImages.length > 0 || pendingCount > 0) ? (
               <div
-                className="grid w-full grid-cols-2 gap-3 md:grid-cols-4"
+                className="grid w-full grid-cols-2 gap-1.5 md:grid-cols-4"
                 style={{ gridAutoRows: "320px" }}
               >
                 {/* Skeleton loaders while generating */}
-                {isGenerating && <ImageGridSkeleton count={generatingCount} />}
+                {pendingCount > 0 && <ImageGridSkeleton count={pendingCount} />}
 
                 {/* Generated images */}
                 {generatedImages.map((img, index) => (
@@ -228,7 +239,6 @@ export default function ImagePage() {
             ) : !isLoading ? (
               <ImageEmptyState />
             ) : null}
-          </div>
         </div>
       </div>
 

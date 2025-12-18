@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 
 const PlusIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20">
@@ -57,6 +58,7 @@ const modelOptions = [
   { value: "nano_banana_2", label: "Default" },
   { value: "characters", label: "Characters" },
   { value: "products", label: "Products" },
+  { value: "ugc", label: "UGC" },
 ];
 
 interface SavedCharacter {
@@ -467,6 +469,8 @@ export default function ImagePromptForm({
   const [prompt, setPrompt] = useState(initialPrompt);
   const [model, setModel] = useState(initialModel || "nano_banana_2");
   const [subModel, setSubModel] = useState(initialSubModel || "");
+  const [ugcCharacter, setUgcCharacter] = useState("");
+  const [ugcProduct, setUgcProduct] = useState("");
   const [imageCount, setImageCount] = useState(1);
   const [aspectRatio, setAspectRatio] = useState("1:1");
   const [resolution, setResolution] = useState("1K");
@@ -513,6 +517,8 @@ export default function ImagePromptForm({
 
   // Get selected character/product reference images
   const getSelectedReferenceImages = useCallback((): string[] => {
+    const MAX_REFS_PER_TYPE = 7;
+
     if (model === "characters" && subModel) {
       const char = savedCharacters.find((c) => c.id === subModel);
       return char?.referenceImages || [];
@@ -521,8 +527,27 @@ export default function ImagePromptForm({
       const prod = savedProducts.find((p) => p.id === subModel);
       return prod?.referenceImages || [];
     }
+    if (model === "ugc") {
+      const charImages: string[] = [];
+      const prodImages: string[] = [];
+
+      if (ugcCharacter) {
+        const char = savedCharacters.find((c) => c.id === ugcCharacter);
+        if (char?.referenceImages) {
+          charImages.push(...char.referenceImages.slice(0, MAX_REFS_PER_TYPE));
+        }
+      }
+      if (ugcProduct) {
+        const prod = savedProducts.find((p) => p.id === ugcProduct);
+        if (prod?.referenceImages) {
+          prodImages.push(...prod.referenceImages.slice(0, MAX_REFS_PER_TYPE));
+        }
+      }
+
+      return [...charImages, ...prodImages];
+    }
     return [];
-  }, [model, subModel, savedCharacters, savedProducts]);
+  }, [model, subModel, ugcCharacter, ugcProduct, savedCharacters, savedProducts]);
 
   // Handle initial model/subModel from URL params
   useEffect(() => {
@@ -653,6 +678,40 @@ export default function ImagePromptForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isImagesLoading) return;
+
+    // Validate prompt is required
+    if (!prompt.trim()) {
+      toast.error("Please enter a prompt");
+      return;
+    }
+
+    // Validate mode-specific requirements
+    if (model === "characters") {
+      if (!subModel) {
+        toast.error("Please select a character");
+        return;
+      }
+    }
+    if (model === "products") {
+      if (!subModel) {
+        toast.error("Please select a product");
+        return;
+      }
+    }
+    if (model === "ugc") {
+      if (!ugcCharacter && !ugcProduct) {
+        toast.error("Please select a character and product");
+        return;
+      }
+      if (!ugcCharacter) {
+        toast.error("Please select a character");
+        return;
+      }
+      if (!ugcProduct) {
+        toast.error("Please select a product");
+        return;
+      }
+    }
 
     // Get manually uploaded reference images (base64)
     const uploadedImageData = referenceImages
@@ -802,6 +861,8 @@ export default function ImagePromptForm({
               onChange={(value) => {
                 setModel(value);
                 setSubModel("");
+                setUgcCharacter("");
+                setUgcProduct("");
               }}
             />
 
@@ -835,6 +896,40 @@ export default function ImagePromptForm({
               >
                 + Create a product
               </a>
+            )}
+
+            {/* UGC mode - both Character and Product selectors */}
+            {model === "ugc" && (
+              <>
+                {characterOptions.length > 0 ? (
+                  <SelectDropdown
+                    options={[{ value: "", label: "Character" }, ...characterOptions]}
+                    value={ugcCharacter}
+                    onChange={setUgcCharacter}
+                  />
+                ) : (
+                  <a
+                    href="/create-character"
+                    className="flex h-10 items-center gap-2 rounded-xl border border-dashed border-zinc-600 bg-zinc-800/30 px-3 text-sm text-gray-400 transition hover:border-cyan-400/50 hover:text-cyan-400"
+                  >
+                    + Character
+                  </a>
+                )}
+                {productOptions.length > 0 ? (
+                  <SelectDropdown
+                    options={[{ value: "", label: "Product" }, ...productOptions]}
+                    value={ugcProduct}
+                    onChange={setUgcProduct}
+                  />
+                ) : (
+                  <a
+                    href="/products"
+                    className="flex h-10 items-center gap-2 rounded-xl border border-dashed border-zinc-600 bg-zinc-800/30 px-3 text-sm text-gray-400 transition hover:border-cyan-400/50 hover:text-cyan-400"
+                  >
+                    + Product
+                  </a>
+                )}
+              </>
             )}
 
             {/* Image count selector */}
@@ -893,7 +988,8 @@ export default function ImagePromptForm({
           <button
             type="submit"
             disabled={isImagesLoading}
-            className="inline-grid h-full w-36 grid-flow-col items-center justify-center gap-2 rounded-xl bg-cyan-400 px-2.5 text-sm font-semibold text-black transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
+            tabIndex={-1}
+            className="inline-grid h-full w-36 grid-flow-col items-center justify-center gap-2 rounded-xl bg-cyan-400 px-2.5 text-sm font-semibold text-black transition hover:bg-cyan-500 focus:outline-none disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
           >
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold">
