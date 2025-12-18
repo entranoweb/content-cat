@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Content Cat",
+  title: {
+    default: "Content Cat - AI Image & Video Generator",
+    template: "%s | Content Cat",
+  },
   description:
-    "Create authentic images and videos with natural texture and easy style",
+    "Transform your ideas into stunning visuals. Generate AI images, create cinematic videos, and build custom characters with professional-grade quality.",
 };
 
 export default function RootLayout({
@@ -27,7 +31,19 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        {children}
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            style: {
+              background: "#18181b",
+              border: "1px solid #3f3f46",
+              color: "#fff",
+            },
+          }}
+        />
+      </body>
     </html>
   );
 }

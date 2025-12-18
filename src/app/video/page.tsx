@@ -7,13 +7,13 @@ import {
   VIDEO_MODELS,
   getDefaultState,
   getModelConfig,
-  calculateCredits,
+  calculatePrice,
   type VideoModelId,
   type VideoGenerationState,
   type VideoAspectRatio,
   type VideoDuration,
   type VideoResolution,
-} from "@/lib/kie";
+} from "@/lib/fal";
 import { Dropdown, SimpleDropdown, GridDropdown } from "@/components/Dropdown";
 
 // Import video editor presets (client-safe, no Node.js dependencies)
@@ -69,7 +69,8 @@ const WanIcon = () => (
 
 const MODEL_ICONS: Record<VideoModelId, React.ReactNode> = {
   "kling-2.6": <KlingIcon />,
-  "wan-2.5": <WanIcon />,
+  "kling-2.5-turbo": <KlingIcon />,
+  "wan-2.6": <WanIcon />,
 };
 
 const FolderIcon = () => (
@@ -246,7 +247,7 @@ export default function VideoPage() {
 
   // Get current model config
   const modelConfig = getModelConfig(videoState.model);
-  const credits = calculateCredits(videoState);
+  const credits = calculatePrice(videoState);
 
   // Update handlers
   const updateVideoState = (updates: Partial<VideoGenerationState>) => {
@@ -1076,11 +1077,10 @@ export default function VideoPage() {
               <section className="flex w-full flex-col self-start rounded-[1.25rem] border border-zinc-800 bg-zinc-900 px-8 py-24">
                 <header className="mb-8">
                   <h1 className="font-heading mb-2 text-4xl font-bold text-white uppercase">
-                    Make Videos in One Click
+                    Turn Images Into Video
                   </h1>
                   <p className="text-sm text-gray-400">
-                    250+ presets for camera control, framing, and high-quality
-                    VFX - or use the general preset for manual control.
+                    Pick a preset or go manual. Camera moves, effects, all that.
                   </p>
                 </header>
 

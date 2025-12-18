@@ -9,7 +9,7 @@ import UploadReviewModal from "@/components/UploadReviewModal";
 const previewImages = [
   {
     id: 1,
-    image: "/images/character-1.jpg",
+    image: "/images/product-1.jpg",
     rotation: "-rotate-12",
     size: "h-40 w-32",
     z: "z-10",
@@ -17,7 +17,7 @@ const previewImages = [
   },
   {
     id: 2,
-    image: "/images/character-2.jpg",
+    image: "/images/product-2.jpg",
     rotation: "rotate-3",
     size: "h-52 w-40",
     z: "z-20",
@@ -25,7 +25,7 @@ const previewImages = [
   },
   {
     id: 3,
-    image: "/images/character-3.jpg",
+    image: "/images/product-3.jpg",
     rotation: "-rotate-6",
     size: "h-44 w-34",
     z: "z-30",
@@ -33,7 +33,7 @@ const previewImages = [
   },
   {
     id: 4,
-    image: "/images/character-4.jpg",
+    image: "/images/product-4.jpg",
     rotation: "rotate-10",
     size: "h-48 w-36",
     z: "z-20",
@@ -42,14 +42,14 @@ const previewImages = [
 ];
 
 const galleryImages = [
-  { id: 1, image: "/images/gallery-1.jpg" },
-  { id: 2, image: "/images/gallery-2.jpg" },
-  { id: 3, image: "/images/gallery-3.jpg" },
-  { id: 4, image: "/images/gallery-4.jpg" },
-  { id: 5, image: "/images/gallery-5.jpg" },
+  { id: 1, image: "/images/product-gallery-1.jpg" },
+  { id: 2, image: "/images/product-gallery-2.jpg" },
+  { id: 3, image: "/images/product-gallery-3.jpg" },
+  { id: 4, image: "/images/product-gallery-4.jpg" },
+  { id: 5, image: "/images/product-gallery-5.jpg" },
 ];
 
-export default function CreateCharacter() {
+export default function Products() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
@@ -62,13 +62,13 @@ export default function CreateCharacter() {
 
   const handleGenerate = (name: string) => {
     console.log(
-      "Generating character:",
+      "Generating product shots:",
       name,
       "with",
       uploadedFiles.length,
       "images"
     );
-    // TODO: Handle character generation
+    // TODO: Handle product shot generation
     setIsReviewModalOpen(false);
     setUploadedFiles([]);
   };
@@ -102,7 +102,7 @@ export default function CreateCharacter() {
             >
               <Image
                 src={item.image}
-                alt={`Character preview ${item.id}`}
+                alt={`Product preview ${item.id}`}
                 fill
                 sizes="200px"
                 priority
@@ -115,15 +115,15 @@ export default function CreateCharacter() {
         {/* Title Section */}
         <div className="text-center">
           <h1 className="font-heading text-4xl text-white">
-            MAKE YOUR OWN CHARACTER
+            MAKE AI PRODUCT SHOTS
           </h1>
           <p className="mt-3 text-sm text-gray-400">
-            Upload some selfies. Generate photos and videos of yourself in any
-            style.
+            Upload photos of your product. Get new shots with different
+            backgrounds, lighting, angles.
           </p>
           <p className="text-sm text-gray-400">
-            It learns your face and keeps it consistent across everything you
-            make
+            Works for images and videos. Good for ads, social posts, whatever
+            you need
           </p>
         </div>
 
@@ -133,7 +133,7 @@ export default function CreateCharacter() {
           className="mb-4 flex cursor-pointer items-center gap-2 rounded-lg bg-cyan-400 px-6 py-3 font-semibold text-black shadow-lg shadow-cyan-400/25 transition-all duration-300 hover:bg-cyan-500 hover:shadow-cyan-500/30"
         >
           <span>✦</span>
-          Create Character
+          Create Product Shot
         </button>
 
         {/* Gallery Section */}

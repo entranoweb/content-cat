@@ -1,0 +1,41 @@
+{
+  "timestamp": "2025-12-18T09:25:18.203Z",
+  "results": [
+    {
+      "success": true,
+      "filename": "product-1.jpg"
+    },
+    {
+      "success": true,
+      "filename": "product-2.jpg"
+    },
+    {
+      "success": true,
+      "filename": "product-3.jpg"
+    },
+    {
+      "success": true,
+      "filename": "product-4.jpg"
+    },
+    {
+      "success": true,
+      "filename": "product-gallery-1.jpg"
+    },
+    {
+      "success": true,
+      "filename": "product-gallery-2.jpg"
+    },
+    {
+      "success": true,
+      "filename": "product-gallery-3.jpg"
+    },
+    {
+      "success": true,
+      "filename": "product-gallery-4.jpg"
+    },
+    {
+      "success": true,
+      "filename": "product-gallery-5.jpg"
+    }
+  ]
+}

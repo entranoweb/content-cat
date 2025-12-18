@@ -178,14 +178,11 @@ export default function PromptsPage() {
           <section className="flex flex-col">
             <PromptsIcon />
             <h2 className="font-heading mb-3 text-xl leading-none font-bold tracking-tight text-white uppercase sm:mb-4 sm:text-2xl lg:text-2xl">
-              Welcome to{" "}
-              <span className="block text-cyan-400 sm:inline">
-                Prompt Library
-              </span>
+              Prompt{" "}
+              <span className="block text-cyan-400 sm:inline">Gallery</span>
             </h2>
             <p className="max-w-full text-sm text-gray-400">
-              One-click AI prompts that transform your ideas into stunning
-              images and creative content
+              Pre-made prompts ready to go. Click one and hit generate.
             </p>
           </section>
 

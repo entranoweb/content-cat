@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ReactCompareSlider,
   ReactCompareSliderImage,
@@ -96,35 +96,63 @@ function AnimatedCompareSlider({
   imageAfter: string;
   title: string;
 }) {
-  const [position, setPosition] = useState(() => Math.random() * 60 + 20); // Random start 20-80
-  const [direction, setDirection] = useState(() =>
-    Math.random() > 0.5 ? 1 : -1
-  );
-  const [speed] = useState(() => Math.random() * 0.3 + 0.15); // Random speed 0.15-0.45
   const [isPaused, setIsPaused] = useState(false);
 
+  // Initialize animation state - fixed value for SSR
+  const [animationState, setAnimationState] = useState(() => ({
+    position: 50,
+    direction: 1,
+    speed: 0.3,
+  }));
+
+  const hasInitialized = useRef(false);
+
+  // Animation effect - handles both initialization and updates
   useEffect(() => {
+    // Initialize with random values once (client-side only)
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      // Generate random values inside effect to satisfy ESLint purity rules
+      const randomPosition = Math.random() * 60 + 20; // Random start 20-80
+      const randomDirection = Math.random() > 0.5 ? 1 : -1;
+      const randomSpeed = Math.random() * 0.3 + 0.15; // Random speed 0.15-0.45
+
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional one-time initialization after mount to avoid SSR hydration mismatch with random values
+      setAnimationState({
+        position: randomPosition,
+        direction: randomDirection,
+        speed: randomSpeed,
+      });
+      return;
+    }
+
+    // Animation loop (after initialization)
     if (isPaused) return;
 
     const interval = setInterval(() => {
-      setPosition((prev) => {
-        let next = prev + direction * speed;
+      setAnimationState((prev) => {
+        let nextPosition = prev.position + prev.direction * prev.speed;
+        let nextDirection = prev.direction;
 
         // Bounce at edges
-        if (next >= 85) {
-          setDirection(-1);
-          next = 85;
-        } else if (next <= 15) {
-          setDirection(1);
-          next = 15;
+        if (nextPosition >= 85) {
+          nextDirection = -1;
+          nextPosition = 85;
+        } else if (nextPosition <= 15) {
+          nextDirection = 1;
+          nextPosition = 15;
         }
 
-        return next;
+        return {
+          ...prev,
+          position: nextPosition,
+          direction: nextDirection,
+        };
       });
     }, 16); // ~60fps
 
     return () => clearInterval(interval);
-  }, [direction, speed, isPaused]);
+  }, [isPaused]);
 
   return (
     <div
@@ -157,7 +185,7 @@ function AnimatedCompareSlider({
           />
         }
         style={{ width: "100%", height: "100%" }}
-        position={position}
+        position={animationState.position}
         onlyHandleDraggable
       />
     </div>
@@ -169,9 +197,9 @@ export default function TopChoice() {
     <section className="mt-8 flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-heading text-2xl text-white">TOP CHOICE</h2>
+          <h2 className="font-heading text-2xl text-white">QUICK TOOLS</h2>
           <p className="text-sm text-gray-400">
-            Creator-recommended tools tailored for you
+            Powerful AI enhancements at your fingertips
           </p>
         </div>
         <Link
