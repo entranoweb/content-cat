@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
+import { ChevronDownIcon, CloseIcon, KeyIcon, TrashIcon } from "./icons";
 
 interface ApiKey {
   id: string;
@@ -20,62 +21,6 @@ interface ApiKeysModalProps {
 const SERVICES = [
   { id: "fal", name: "fal.ai", description: "Image & video generation API" },
 ];
-
-const ChevronDownIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 20 20"
-    className="size-5 text-gray-400"
-  >
-    <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M3.81344 7.97994C4.0087 7.78468 4.32528 7.78468 4.52055 7.97994L10.0003 13.4597L15.4801 7.97994C15.6754 7.78468 15.9919 7.78468 16.1872 7.97994C16.3825 8.1752 16.3825 8.49179 16.1872 8.68705L10.3539 14.5204L10.0003 14.8739L9.64677 14.5204L3.81344 8.68705C3.61818 8.49179 3.61818 8.1752 3.81344 7.97994Z"
-      fill="currentColor"
-    />
-  </svg>
-);
-
-const XIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" className="h-4 w-4">
-    <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M3.81246 3.81246C4.00772 3.6172 4.32431 3.6172 4.51957 3.81246L9.99935 9.29224L15.4791 3.81246C15.6744 3.6172 15.991 3.6172 16.1862 3.81246C16.3815 4.00772 16.3815 4.32431 16.1862 4.51957L10.7065 9.99935L16.1862 15.4791C16.3815 15.6744 16.3815 15.991 16.1862 16.1862C15.991 16.3815 15.6744 16.3815 15.4791 16.1862L9.99935 10.7065L4.51957 16.1862C4.32431 16.3815 4.00772 16.3815 3.81246 16.1862C3.6172 15.991 3.6172 15.6744 3.81246 15.4791L9.29224 9.99935L3.81246 4.51957C3.6172 4.32431 3.6172 4.00772 3.81246 3.81246Z"
-      fill="currentColor"
-    />
-  </svg>
-);
-
-const KeyIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    className="h-4 w-4"
-  >
-    <path
-      d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-const TrashIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" className="h-4 w-4">
-    <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M8.5 3.5A1.5 1.5 0 0 1 10 2h.5a1.5 1.5 0 0 1 1.5 1.5V4h3a.5.5 0 0 1 0 1h-.554l-.675 9.443A2 2 0 0 1 11.774 16H8.226a2 2 0 0 1-1.997-1.557L5.554 5H5a.5.5 0 0 1 0-1h3v-.5zm1 .5h1.5v-.5a.5.5 0 0 0-.5-.5h-.5a.5.5 0 0 0-.5.5V4zm-2.946 1l.67 9.386A1 1 0 0 0 8.226 15h3.548a1 1 0 0 0 .998-.614L13.446 5H6.554z"
-      fill="currentColor"
-    />
-  </svg>
-);
 
 export default function ApiKeysModal({ isOpen, onClose }: ApiKeysModalProps) {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
@@ -272,7 +217,7 @@ export default function ApiKeysModal({ isOpen, onClose }: ApiKeysModalProps) {
             onClick={onClose}
             className="flex h-8 w-8 items-center justify-center rounded-xl text-gray-400 transition hover:bg-white/5 hover:text-white"
           >
-            <XIcon />
+            <CloseIcon />
           </button>
         </div>
 

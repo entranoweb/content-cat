@@ -1,0 +1,75 @@
+"use client";
+
+import { SparkleIcon, EditIcon, DeleteIcon } from "@/components/icons";
+import type { Entity } from "@/types/entities";
+
+interface EntityCardProps {
+  entity: Entity;
+  onGenerate: (id: string) => void;
+  onEdit: (entity: Entity) => void;
+  onDelete: (id: string) => void;
+}
+
+export default function EntityCard({
+  entity,
+  onGenerate,
+  onEdit,
+  onDelete,
+}: EntityCardProps) {
+  return (
+    <div className="group relative">
+      <div className="relative h-72 w-48 overflow-hidden bg-zinc-800">
+        {entity.thumbnailUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={entity.thumbnailUrl}
+            alt={entity.name}
+            className="h-full w-full object-cover transition-all duration-300 ease-out group-hover:brightness-50"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-gray-500">
+            No image
+          </div>
+        )}
+        {/* Hover overlay */}
+        <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100" />
+        {/* Generate button - appears on hover */}
+        <button
+          type="button"
+          onClick={() => onGenerate(entity.id)}
+          className="absolute top-1/2 left-1/2 inline-grid h-12 -translate-x-1/2 -translate-y-1/2 grid-flow-col items-center justify-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-4 text-sm font-medium text-cyan-400 opacity-0 backdrop-blur-sm transition-all duration-300 ease-out group-hover:opacity-100 hover:bg-cyan-400/20"
+        >
+          <SparkleIcon className="size-5" />
+          Generate
+        </button>
+        {/* Top-right action buttons - appear on hover */}
+        <div className="absolute top-2 right-2 z-20 flex gap-1 opacity-0 transition-all duration-300 ease-out group-hover:opacity-100">
+          {/* Edit button */}
+          <button
+            onClick={() => onEdit(entity)}
+            className="grid h-8 w-8 items-center justify-center rounded-lg bg-black/50 text-white/70 backdrop-blur-sm transition-colors hover:text-white"
+            title={`Edit ${entity.name}`}
+          >
+            <EditIcon />
+          </button>
+          {/* Delete button */}
+          <button
+            onClick={() => onDelete(entity.id)}
+            className="grid h-8 w-8 items-center justify-center rounded-lg bg-black/50 text-white/70 backdrop-blur-sm transition-colors hover:text-red-500"
+            title={`Delete ${entity.name}`}
+          >
+            <DeleteIcon />
+          </button>
+        </div>
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+          <p className="font-heading truncate text-xs text-white uppercase">
+            {entity.name}
+          </p>
+          <p className="text-xs text-gray-400">
+            {entity.referenceImages.length} images
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

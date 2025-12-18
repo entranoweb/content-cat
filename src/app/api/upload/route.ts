@@ -1,21 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fal } from "@fal-ai/client";
-import { prisma } from "@/lib/prisma";
-
-// Get API key from database
-async function getApiKey(): Promise<string | null> {
-  try {
-    const storedKey = await prisma.apiKey.findUnique({
-      where: { service: "fal" },
-    });
-    if (storedKey?.isActive && storedKey.key) {
-      return storedKey.key;
-    }
-  } catch (error) {
-    console.error("Failed to fetch API key from database:", error);
-  }
-  return null;
-}
+import { getApiKey } from "@/lib/services/apiKeyService";
 
 export async function POST(request: NextRequest) {
   try {

@@ -219,3 +219,205 @@ export const VideoIcon = () => (
     <path d="M10 9l5 3-5 3V9z" />
   </svg>
 );
+
+// Video card icons
+export const PlayIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" className="size-6 text-white">
+    <path
+      d="M4.78824 1.26719C3.78891 0.649958 2.5 1.36881 2.5 2.54339V9.45736C2.5 10.6319 3.7889 11.3508 4.78824 10.7336L10.3853 7.27657C11.3343 6.69042 11.3343 5.31034 10.3853 4.72418L4.78824 1.26719Z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+export const PauseIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" className="size-6 text-white">
+    <path
+      d="M3 1.5C2.44772 1.5 2 1.94772 2 2.5V9.5C2 10.0523 2.44772 10.5 3 10.5H4C4.55228 10.5 5 10.0523 5 9.5V2.5C5 1.94772 4.55228 1.5 4 1.5H3Z"
+      fill="currentColor"
+    />
+    <path
+      d="M8 1.5C7.44772 1.5 7 1.94772 7 2.5V9.5C7 10.0523 7.44772 10.5 8 10.5H9C9.55228 10.5 10 10.0523 10 9.5V2.5C10 1.94772 9.55228 1.5 9 1.5H8Z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+export const HeartIcon = ({ filled = false }: { filled?: boolean }) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <path
+      d="M12 5.57193C18.3331 -0.86765 29.1898 11.0916 12 20.75C-5.18982 11.0916 5.66687 -0.867651 12 5.57193Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+      fill={filled ? "currentColor" : "none"}
+    />
+  </svg>
+);
+
+export const DownloadIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <path
+      d="M20.25 14.75V19.25C20.25 19.8023 19.8023 20.25 19.25 20.25H4.75C4.19772 20.25 3.75 19.8023 3.75 19.25V14.75M12 15V3.75M12 15L8.5 11.5M12 15L15.5 11.5"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const FolderDownloadIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <path
+      d="M12 19.25V13M12 13L14.5 15.5M12 13L9.5 15.5M7.375 19.25H3.75C3.19772 19.25 2.75 18.8023 2.75 18.25V4.75C2.75 4.19772 3.19772 3.75 3.75 3.75H9.46482C9.79917 3.75 10.1114 3.9171 10.2969 4.1953L11.7031 6.3047C11.8886 6.5829 12.2008 6.75 12.5352 6.75H20.25C20.8023 6.75 21.25 7.19772 21.25 7.75V18.25C21.25 18.8023 20.8023 19.25 20.25 19.25H16.625"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const MoreIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <path
+      d="M12 13C12.5523 13 13 12.5523 13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13Z"
+      fill="currentColor"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M20.25 13C20.8023 13 21.25 12.5523 21.25 12C21.25 11.4477 20.8023 11 20.25 11C19.6977 11 19.25 11.4477 19.25 12C19.25 12.5523 19.6977 13 20.25 13Z"
+      fill="currentColor"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M3.75 13C4.30228 13 4.75 12.5523 4.75 12C4.75 11.4477 4.30228 11 3.75 11C3.19772 11 2.75 11.4477 2.75 12C2.75 12.5523 3.19772 13 3.75 13Z"
+      fill="currentColor"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const RerunIcon = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    className="[&_path]:stroke-[3px]"
+  >
+    <path
+      d="M4.24023 14.75C5.37278 17.9543 8.42869 20.25 12.0208 20.25C16.5771 20.25 20.2708 16.5563 20.2708 12C20.2708 7.44365 16.5771 3.75 12.0208 3.75C9.20364 3.75 7.32073 4.95438 5.4998 7.00891M4.7498 4V7.5C4.7498 7.77614 4.97366 8 5.2498 8H8.7498"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const CopyIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+    <path
+      d="M19.25 7.75C19.25 7.19772 18.8023 6.75 18.25 6.75H9.75C9.19772 6.75 8.75 7.19772 8.75 7.75V20.25C8.75 20.8023 9.19772 21.25 9.75 21.25H18.25C18.8023 21.25 19.25 20.8023 19.25 20.25V7.75Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M15.25 6.75V3.75C15.25 3.19772 14.8023 2.75 14.25 2.75H5.75C5.19772 2.75 4.75 3.19772 4.75 3.75V16.25C4.75 16.8023 5.19772 17.25 5.75 17.25H8.75"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const TrashIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+    <path
+      d="M4.75 6.5L5.72041 20.32C5.7572 20.8439 6.19286 21.25 6.71796 21.25H17.282C17.8071 21.25 18.2428 20.8439 18.2796 20.32L19.25 6.5"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M3.25 5.75H20.75"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M8.5246 5.58289C8.73079 3.84652 10.2081 2.5 12 2.5C13.7919 2.5 15.2692 3.84652 15.4754 5.58289"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M10 10.5V16.25"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M14 10.5V16.25"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const ResolutionIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+    <path
+      d="M8.5 7.75L6.25 10L8.5 12.25M12.7071 20.0429L22.049 10.701C22.4371 10.3129 22.4398 9.68443 22.0551 9.29295L16.901 4.04903C16.713 3.85774 16.4561 3.75 16.1879 3.75H7.81214C7.54393 3.75 7.28696 3.85774 7.09895 4.04903L1.94493 9.29295C1.56016 9.68443 1.56288 10.3129 1.95102 10.701L11.2929 20.0429C11.6834 20.4334 12.3166 20.4334 12.7071 20.0429Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const ClockIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+    <path
+      d="M12 7.75V12L14.75 14.75M21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12C2.75 6.89137 6.89137 2.75 12 2.75C17.1086 2.75 21.25 6.89137 21.25 12Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+// Model icons and mappings for video cards
+export const MODEL_ICONS: Record<string, React.ReactNode> = {
+  "kling-2.6": <KlingIcon />,
+  "kling-2.5-turbo": <KlingIcon />,
+  "wan-2.6": <WanIcon />,
+};
+
+export const MODEL_NAMES: Record<string, string> = {
+  "kling-2.6": "Kling 2.6",
+  "kling-2.5-turbo": "Kling 2.5 Turbo",
+  "wan-2.6": "Wan 2.6",
+};
