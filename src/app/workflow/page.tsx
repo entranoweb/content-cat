@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useEffect, useRef } from "react";
+import { Suspense, useCallback, useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
 import { toast } from "sonner";
@@ -9,6 +9,11 @@ import WorkflowToolbar from "@/components/workflow/WorkflowToolbar";
 import WorkflowPropertiesPanel from "@/components/workflow/WorkflowPropertiesPanel";
 import { WorkflowProvider } from "@/components/workflow/WorkflowContext";
 import { useWorkflow } from "@/hooks/useWorkflow";
+import {
+  getWorkflow,
+  createWorkflow,
+  updateWorkflow,
+} from "@/lib/api/workflows";
 import type { WorkflowNode, WorkflowEdge } from "@/components/workflow/types";
 import type { SavedWorkflow } from "@/components/workflow/WorkflowBottomToolbar";
 
@@ -56,21 +61,17 @@ function WorkflowPageContent() {
 
     const urlWorkflowId = searchParams.get("id");
     if (urlWorkflowId) {
-      // Load the workflow from the URL
-      fetch(`/api/workflows/${urlWorkflowId}`)
-        .then((res) => {
-          if (res.ok) return res.json();
-          throw new Error("Not found");
-        })
-        .then((data) => {
-          setWorkflowId(data.id);
-          setWorkflowName(data.name);
-          setNodes(data.nodes as WorkflowNode[]);
-          setEdges(data.edges as WorkflowEdge[]);
-          isInitialMount.current = true;
-        })
-        .catch(() => {
-          // Workflow not found, start fresh
+      getWorkflow(urlWorkflowId)
+        .then((result) => {
+          if (result.success) {
+            setWorkflowId(result.data.id);
+            setWorkflowName(result.data.name);
+            setNodes(result.data.nodes);
+            setEdges(result.data.edges);
+            isInitialMount.current = true;
+          } else if (result.error.code !== "NOT_FOUND") {
+            toast.error("Failed to load workflow");
+          }
         })
         .finally(() => {
           setIsLoading(false);
@@ -90,49 +91,40 @@ function WorkflowPageContent() {
     }
   }, [workflowId, router]);
 
-  // Get CSRF token from cookie
-  const getCsrfToken = useCallback(() => {
-    const match = document.cookie.match(/csrf_token=([^;]+)/);
-    return match ? match[1] : "";
-  }, []);
-
   // Auto-save workflow with debounce
   const saveWorkflow = useCallback(async () => {
     if (isSaving) return;
     setIsSaving(true);
 
-    const csrfToken = getCsrfToken();
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-      "x-csrf-token": csrfToken,
-    };
-
     try {
       if (workflowId) {
-        // Update existing workflow
-        await fetch(`/api/workflows/${workflowId}`, {
-          method: "PATCH",
-          headers,
-          body: JSON.stringify({ name: workflowName, nodes, edges }),
+        const result = await updateWorkflow(workflowId, {
+          name: workflowName,
+          nodes,
+          edges,
         });
+        if (!result.success) {
+          toast.error("Failed to save workflow");
+        }
       } else {
-        // Create new workflow
-        const response = await fetch("/api/workflows", {
-          method: "POST",
-          headers,
-          body: JSON.stringify({ name: workflowName, nodes, edges }),
+        const result = await createWorkflow({
+          name: workflowName,
+          nodes,
+          edges,
         });
-        const data = await response.json();
-        if (data.id) {
-          setWorkflowId(data.id);
+        if (result.success) {
+          setWorkflowId(result.data.id);
+        } else {
+          toast.error("Failed to create workflow");
         }
       }
     } catch (error) {
       console.error("Failed to save workflow:", error);
+      toast.error("Failed to save workflow");
     } finally {
       setIsSaving(false);
     }
-  }, [workflowId, workflowName, nodes, edges, isSaving, getCsrfToken]);
+  }, [workflowId, workflowName, nodes, edges, isSaving]);
 
   // Track changes (skip initial mount)
   useEffect(() => {
@@ -217,25 +209,16 @@ function WorkflowPageContent() {
 
   const handleLoadWorkflow = useCallback(
     async (workflow: SavedWorkflow) => {
-      try {
-        const response = await fetch(`/api/workflows/${workflow.id}`);
-        if (!response.ok) {
-          toast.error("Failed to load workflow");
-          return;
-        }
-        const data = await response.json();
-
-        // Set the workflow data
-        setWorkflowId(data.id);
-        setWorkflowName(data.name);
-        setNodes(data.nodes as WorkflowNode[]);
-        setEdges(data.edges as WorkflowEdge[]);
+      const result = await getWorkflow(workflow.id);
+      if (result.success) {
+        setWorkflowId(result.data.id);
+        setWorkflowName(result.data.name);
+        setNodes(result.data.nodes);
+        setEdges(result.data.edges);
         setHasUnsavedChanges(false);
-        isInitialMount.current = true; // Reset to prevent immediate save
-
-        toast.success(`Loaded "${data.name}"`);
-      } catch (error) {
-        console.error("Failed to load workflow:", error);
+        isInitialMount.current = true;
+        toast.success(`Loaded "${result.data.name}"`);
+      } else {
         toast.error("Failed to load workflow");
       }
     },
@@ -310,10 +293,24 @@ function WorkflowPageContent() {
   );
 }
 
-export default function WorkflowPage() {
+function WorkflowPageWithProvider() {
   return (
     <ReactFlowProvider>
       <WorkflowPageContent />
     </ReactFlowProvider>
+  );
+}
+
+export default function WorkflowPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center bg-[#111114]">
+          <div className="text-gray-400">Loading workflow...</div>
+        </div>
+      }
+    >
+      <WorkflowPageWithProvider />
+    </Suspense>
   );
 }

@@ -238,20 +238,23 @@ export function useWorkflow(options?: UseWorkflowOptions): UseWorkflowReturn {
 
   const deleteNode = useCallback(
     (nodeId: string) => {
-      setNodes((nds) => {
-        const newNodes = nds.filter((node) => node.id !== nodeId);
-        setEdges((eds) => {
-          const newEdges = eds.filter(
-            (edge) => edge.source !== nodeId && edge.target !== nodeId
-          );
-          saveToHistory(newNodes, newEdges);
-          return newEdges;
-        });
-        return newNodes;
-      });
+      // Compute new values from current state first (no nested setState)
+      const newNodes = nodes.filter((node) => node.id !== nodeId);
+      const newEdges = edges.filter(
+        (edge) => edge.source !== nodeId && edge.target !== nodeId
+      );
+
+      // Update both states atomically
+      setNodes(newNodes);
+      setEdges(newEdges);
+
+      // Save to history with computed values
+      saveToHistory(newNodes, newEdges);
+
+      // Clear selection if deleted node was selected
       setSelectedNodeId((current) => (current === nodeId ? null : current));
     },
-    [saveToHistory]
+    [nodes, edges, saveToHistory]
   );
 
   const updateNodeData = useCallback(
