@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 export default function HowItWorksSection() {
   return (
     <div className="animate-in fade-in duration-200">
@@ -22,10 +24,11 @@ export default function HowItWorksSection() {
               className="relative mb-4 w-full overflow-hidden rounded-2xl"
               style={{ aspectRatio: "1.31646 / 1" }}
             >
-              <img
+              <Image
                 src="/video-page/step-1-v2.webp"
                 alt="Step 1: Add an image"
-                className="h-full w-full object-cover"
+                fill
+                className="object-cover"
               />
             </figure>
             <h2 className="font-heading mb-2 text-sm font-bold text-white uppercase">

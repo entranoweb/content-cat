@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
+import { apiFetch } from "@/lib/csrf";
 import {
   getDefaultState,
   getModelConfig,
@@ -98,7 +99,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
     // Fire-and-forget generation
     const generateVideo = async () => {
       try {
-        const response = await fetch("/api/generate-video", {
+        const response = await apiFetch("/api/generate-video", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -113,6 +114,7 @@ export function useVideoGeneration(options: UseVideoGenerationOptions = {}) {
             imageUrl: videoState.imageUrl,
             endImageUrl: videoState.endImageUrl,
           }),
+          timeout: 300000, // 5 minutes for video generation
         });
 
         const result = await response.json();

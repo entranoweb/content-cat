@@ -43,6 +43,7 @@ const PROTECTED_API_PREFIXES = [
   "/api/api-keys",
   "/api/generate-image",
   "/api/generate-video",
+  "/api/video-edit",
   "/api/upload",
   "/api/workflows",
 ];
@@ -67,7 +68,7 @@ function generateCsrfToken(): string {
   return Array.from(array, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Allow public routes
@@ -97,8 +98,26 @@ export async function middleware(request: NextRequest) {
     const csrfCookie = request.cookies.get(CSRF_COOKIE)?.value;
     const csrfHeader = request.headers.get(CSRF_HEADER);
 
+    // If no CSRF cookie exists, we need to set one first
+    // This can happen if cookies were cleared or on first visit
+    if (!csrfCookie) {
+      const response = NextResponse.json(
+        { error: "CSRF token missing. Please refresh the page and try again." },
+        { status: 403 }
+      );
+      // Set a new CSRF cookie so the next request will work
+      const newToken = generateCsrfToken();
+      response.cookies.set(CSRF_COOKIE, newToken, {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/",
+      });
+      return addSecurityHeaders(response);
+    }
+
     // Verify CSRF token matches (double-submit cookie pattern)
-    if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
+    if (!csrfHeader || csrfCookie !== csrfHeader) {
       const response = NextResponse.json(
         { error: "Invalid CSRF token" },
         { status: 403 }

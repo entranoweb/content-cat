@@ -32,9 +32,18 @@ export interface VideoNodeData extends BaseNodeData {
   fileName?: string;
 }
 
+export interface FileNodeData extends BaseNodeData {
+  fileType?: "image" | "video";
+  imageUrl?: string;
+  videoUrl?: string;
+  fileName?: string;
+  aspectRatio?: string;
+}
+
 // Model-specific node data types
 export interface Kling26NodeData extends BaseNodeData {
   videoUrl?: string;
+  isGenerating?: boolean;
   mode?: "text-to-video" | "image-to-video";
   duration?: "5" | "10";
   aspectRatio?: "1:1" | "16:9" | "9:16";
@@ -46,6 +55,7 @@ export interface Kling26NodeData extends BaseNodeData {
 
 export interface Kling25TurboNodeData extends BaseNodeData {
   videoUrl?: string;
+  isGenerating?: boolean;
   mode?: "text-to-video" | "image-to-video";
   duration?: "5" | "10";
   aspectRatio?: "1:1" | "16:9" | "9:16";
@@ -57,6 +67,7 @@ export interface Kling25TurboNodeData extends BaseNodeData {
 
 export interface Wan26NodeData extends BaseNodeData {
   videoUrl?: string;
+  isGenerating?: boolean;
   mode?: "text-to-video" | "image-to-video" | "reference-to-video";
   duration?: "5" | "10" | "15";
   aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
@@ -70,6 +81,7 @@ export interface Wan26NodeData extends BaseNodeData {
 export interface NanoBananaProNodeData extends BaseNodeData {
   prompt?: string;
   imageUrl?: string;
+  isGenerating?: boolean;
   mode?: "text-to-image" | "image-edit";
   aspectRatio?:
     | "1:1"
@@ -87,73 +99,79 @@ export interface NanoBananaProNodeData extends BaseNodeData {
   numImages?: number;
   enableWebSearch?: boolean;
   enableSafetyChecker?: boolean;
+  // Number of reference image inputs (5-14, default 5)
+  inputCount?: number;
 }
 
-// Video Editor node data type
-export interface VideoEditorNodeData extends BaseNodeData {
+// Video Concat node data type
+export type TransitionType =
+  | "none"
+  | "fade"
+  | "crossfade"
+  | "slideLeft"
+  | "slideRight"
+  | "slideUp"
+  | "slideDown"
+  | "zoomIn"
+  | "zoomOut"
+  | "wipeLeft"
+  | "wipeRight"
+  | "blur"
+  | "glitch"
+  | "flash";
+
+export interface VideoConcatNodeData extends BaseNodeData {
   videoUrl?: string;
-  operation?:
-    | "trim"
-    | "concatenate"
-    | "transition"
-    | "audio"
-    | "subtitles"
-    | "text";
-  // Trim settings
-  trimStart?: number;
-  trimEnd?: number;
-  // Transition settings
-  transition?: {
-    type:
-      | "none"
-      | "fade"
-      | "crossfade"
-      | "slideLeft"
-      | "slideRight"
-      | "slideUp"
-      | "slideDown"
-      | "zoomIn"
-      | "zoomOut"
-      | "wipeLeft"
-      | "wipeRight"
-      | "blur"
-      | "glitch"
-      | "flash";
-    duration: number;
-    easing?: "linear" | "easeIn" | "easeOut" | "easeInOut";
-  };
-  // Audio settings
-  audio?: {
-    enabled: boolean;
-    volume: number;
-    fadeIn?: number;
-    fadeOut?: number;
-    ducking?: boolean;
-  };
-  // Subtitle settings
-  subtitleStyle?:
-    | "classic"
-    | "tiktok"
-    | "highlight"
-    | "minimal"
-    | "neon"
-    | "karaoke";
-  // Text overlay settings
-  textPreset?: "title" | "hook" | "cta" | "lowerThird";
-  textPosition?:
-    | "top-left"
-    | "top-center"
-    | "top-right"
-    | "center-left"
-    | "center"
-    | "center-right"
-    | "bottom-left"
-    | "bottom-center"
-    | "bottom-right";
-  // Output settings
-  outputQuality?: "draft" | "normal" | "high" | "best";
-  outputAspectRatio?: "9:16" | "16:9" | "1:1" | "4:5";
-  outputResolution?: "720p" | "1080p" | "4k";
+  isGenerating?: boolean;
+  aspectRatio?: "16:9" | "9:16" | "1:1" | "4:5";
+  // Array of transitions between clips (length = number of clips - 1)
+  transitions?: { type: TransitionType; duration: number }[];
+  // Number of video inputs (5-10, default 5)
+  inputCount?: number;
+}
+
+// Video Subtitles node data type
+export interface VideoSubtitlesNodeData extends BaseNodeData {
+  videoUrl?: string;
+  isGenerating?: boolean;
+  aspectRatio?: "16:9" | "9:16" | "1:1" | "4:5";
+  style?: "classic" | "tiktok" | "highlight" | "minimal" | "neon" | "karaoke";
+  position?: "top" | "center" | "bottom";
+  autoGenerate?: boolean;
+  transcript?: string;
+}
+
+// Video Trim node data type
+export interface VideoTrimNodeData extends BaseNodeData {
+  videoUrl?: string;
+  isGenerating?: boolean;
+  aspectRatio?: "16:9" | "9:16" | "1:1" | "4:5";
+  startTime?: number;
+  endTime?: number;
+}
+
+// Video Transition node data type
+export interface VideoTransitionNodeData extends BaseNodeData {
+  videoUrl?: string;
+  isGenerating?: boolean;
+  aspectRatio?: "16:9" | "9:16" | "1:1" | "4:5";
+  transitionType?:
+    | "none"
+    | "fade"
+    | "crossfade"
+    | "slideLeft"
+    | "slideRight"
+    | "slideUp"
+    | "slideDown"
+    | "zoomIn"
+    | "zoomOut"
+    | "wipeLeft"
+    | "wipeRight"
+    | "blur"
+    | "glitch"
+    | "flash";
+  duration?: number;
+  easing?: "linear" | "easeIn" | "easeOut" | "easeInOut";
 }
 
 // Union type for all node data
@@ -164,11 +182,15 @@ export type WorkflowNodeData =
   | OutputNodeData
   | PreviewNodeData
   | VideoNodeData
+  | FileNodeData
   | Kling26NodeData
   | Kling25TurboNodeData
   | Wan26NodeData
   | NanoBananaProNodeData
-  | VideoEditorNodeData;
+  | VideoConcatNodeData
+  | VideoSubtitlesNodeData
+  | VideoTrimNodeData
+  | VideoTransitionNodeData;
 
 // Generic workflow node type
 export type WorkflowNode = Node<WorkflowNodeData, string>;
@@ -184,11 +206,15 @@ export type NodeType =
   | "output"
   | "preview"
   | "video"
+  | "file"
   | "kling26"
   | "kling25Turbo"
   | "wan26"
   | "nanoBananaPro"
-  | "videoEditor";
+  | "videoConcat"
+  | "videoSubtitles"
+  | "videoTrim"
+  | "videoTransition";
 
 // Sidebar node item for drag and drop
 export interface SidebarNodeItem {

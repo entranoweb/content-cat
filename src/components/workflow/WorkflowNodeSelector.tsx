@@ -179,7 +179,39 @@ const WanIcon = () => (
   </svg>
 );
 
-const VideoEditorIcon = () => (
+const ConcatIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <rect
+      x="2"
+      y="6"
+      width="6"
+      height="12"
+      rx="1"
+      stroke="currentColor"
+      strokeWidth="1.125"
+    />
+    <rect
+      x="9"
+      y="6"
+      width="6"
+      height="12"
+      rx="1"
+      stroke="currentColor"
+      strokeWidth="1.125"
+    />
+    <rect
+      x="16"
+      y="6"
+      width="6"
+      height="12"
+      rx="1"
+      stroke="currentColor"
+      strokeWidth="1.125"
+    />
+  </svg>
+);
+
+const SubtitlesIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
     <rect
       x="2"
@@ -190,10 +222,71 @@ const VideoEditorIcon = () => (
       stroke="currentColor"
       strokeWidth="1.125"
     />
-    <path d="M2 9H22" stroke="currentColor" strokeWidth="1.125" />
-    <path d="M7 4V9" stroke="currentColor" strokeWidth="1.125" />
-    <path d="M17 4V9" stroke="currentColor" strokeWidth="1.125" />
-    <path d="M10 14L15 17L10 20V14Z" fill="currentColor" />
+    <line
+      x1="6"
+      y1="14"
+      x2="18"
+      y2="14"
+      stroke="currentColor"
+      strokeWidth="1.125"
+    />
+    <line
+      x1="8"
+      y1="17"
+      x2="16"
+      y2="17"
+      stroke="currentColor"
+      strokeWidth="1.125"
+    />
+  </svg>
+);
+
+const TrimIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <circle cx="6" cy="6" r="3" stroke="currentColor" strokeWidth="1.125" />
+    <circle cx="6" cy="18" r="3" stroke="currentColor" strokeWidth="1.125" />
+    <line
+      x1="20"
+      y1="4"
+      x2="8.12"
+      y2="15.88"
+      stroke="currentColor"
+      strokeWidth="1.125"
+    />
+    <line
+      x1="14.47"
+      y1="14.48"
+      x2="20"
+      y2="20"
+      stroke="currentColor"
+      strokeWidth="1.125"
+    />
+    <line
+      x1="8.12"
+      y1="8.12"
+      x2="12"
+      y2="12"
+      stroke="currentColor"
+      strokeWidth="1.125"
+    />
+  </svg>
+);
+
+const TransitionIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <path
+      d="M5 12h14"
+      stroke="currentColor"
+      strokeWidth="1.125"
+      strokeLinecap="round"
+    />
+    <path
+      d="M12 5l7 7-7 7"
+      stroke="currentColor"
+      strokeWidth="1.125"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 
@@ -206,6 +299,39 @@ const NanoBananaProIcon = () => (
   </svg>
 );
 
+const FileIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <path
+      d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
+      stroke="currentColor"
+      strokeWidth="1.125"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M14 2V8H20"
+      stroke="currentColor"
+      strokeWidth="1.125"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M12 18V12"
+      stroke="currentColor"
+      strokeWidth="1.125"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M9 15L12 12L15 15"
+      stroke="currentColor"
+      strokeWidth="1.125"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 interface NodeItem {
   type: string;
   label: string;
@@ -214,6 +340,12 @@ interface NodeItem {
 }
 
 const nodeItems: NodeItem[] = [
+  {
+    type: "file",
+    label: "File",
+    icon: <FileIcon />,
+    category: "Input",
+  },
   {
     type: "imageInput",
     label: "Image",
@@ -241,9 +373,27 @@ const nodeItems: NodeItem[] = [
     category: "Models",
   },
   {
-    type: "videoEditor",
-    label: "Video Edit",
-    icon: <VideoEditorIcon />,
+    type: "videoConcat",
+    label: "Concat",
+    icon: <ConcatIcon />,
+    category: "Editing",
+  },
+  {
+    type: "videoSubtitles",
+    label: "Subtitles",
+    icon: <SubtitlesIcon />,
+    category: "Editing",
+  },
+  {
+    type: "videoTrim",
+    label: "Trim",
+    icon: <TrimIcon />,
+    category: "Editing",
+  },
+  {
+    type: "videoTransition",
+    label: "Transition",
+    icon: <TransitionIcon />,
     category: "Editing",
   },
   { type: "output", label: "Output", icon: <OutputIcon />, category: "Output" },

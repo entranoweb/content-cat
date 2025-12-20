@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useReactFlow, useViewport } from "@xyflow/react";
+import { useReactFlow, useViewport, Position } from "@xyflow/react";
+import Dagre from "@dagrejs/dagre";
+import { apiFetch } from "@/lib/csrf";
 import { useWorkflowContext } from "./WorkflowContext";
 import type { NodeType } from "./types";
 
@@ -94,7 +96,7 @@ const RedoIcon = () => (
   </svg>
 );
 
-const SettingsIcon = () => (
+const CleanLayoutIcon = () => (
   <svg
     width="16"
     height="16"
@@ -105,8 +107,11 @@ const SettingsIcon = () => (
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    <circle cx="12" cy="12" r="3" />
-    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    <rect x="3" y="3" width="6" height="6" rx="1" />
+    <rect x="15" y="3" width="6" height="6" rx="1" />
+    <rect x="9" y="15" width="6" height="6" rx="1" />
+    <path d="M9 6h6" />
+    <path d="M12 9v6" />
   </svg>
 );
 
@@ -229,22 +234,6 @@ const ImageIcon = () => (
   </svg>
 );
 
-const VideoIcon = () => (
-  <svg
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect x="2" y="4" width="20" height="16" rx="2" />
-    <path d="M10 9l5 3-5 3V9z" />
-  </svg>
-);
-
 const ModelIcon = () => (
   <svg
     width="14"
@@ -278,7 +267,7 @@ const EditIcon = () => (
   </svg>
 );
 
-const OutputIcon = () => (
+const FileIcon = () => (
   <svg
     width="14"
     height="14"
@@ -289,9 +278,10 @@ const OutputIcon = () => (
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-    <path d="M7 10l5 5 5-5" />
-    <path d="M12 15V3" />
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <path d="M14 2v6h6" />
+    <path d="M12 18v-6" />
+    <path d="M9 15l3-3 3 3" />
   </svg>
 );
 
@@ -305,9 +295,9 @@ interface NodeItem {
 
 const nodeItems: NodeItem[] = [
   {
-    type: "imageInput",
-    label: "Image Input",
-    icon: <ImageIcon />,
+    type: "file",
+    label: "File",
+    icon: <FileIcon />,
     category: "Input",
   },
   { type: "prompt", label: "Prompt", icon: <EditIcon />, category: "Input" },
@@ -331,17 +321,28 @@ const nodeItems: NodeItem[] = [
     category: "Image",
   },
   {
-    type: "videoEditor",
-    label: "Video Editor",
+    type: "videoConcat",
+    label: "Concat",
     icon: <EditIcon />,
     category: "Editing",
   },
-  { type: "output", label: "Output", icon: <OutputIcon />, category: "Output" },
   {
-    type: "preview",
-    label: "Preview",
-    icon: <VideoIcon />,
-    category: "Output",
+    type: "videoSubtitles",
+    label: "Subtitles",
+    icon: <EditIcon />,
+    category: "Editing",
+  },
+  {
+    type: "videoTrim",
+    label: "Trim",
+    icon: <EditIcon />,
+    category: "Editing",
+  },
+  {
+    type: "videoTransition",
+    label: "Transition",
+    icon: <EditIcon />,
+    category: "Editing",
   },
 ];
 
@@ -364,6 +365,8 @@ export default function WorkflowBottomToolbar({
     zoomOut,
     screenToFlowPosition,
     setNodes,
+    getNodes,
+    getEdges,
   } = useReactFlow();
   const viewport = useViewport();
   const [showZoomPopup, setShowZoomPopup] = useState(false);
@@ -386,7 +389,7 @@ export default function WorkflowBottomToolbar({
   const fetchWorkflows = useCallback(async () => {
     setIsLoadingWorkflows(true);
     try {
-      const response = await fetch("/api/workflows");
+      const response = await apiFetch("/api/workflows");
       if (response.ok) {
         const data = await response.json();
         setWorkflows(data);
@@ -408,21 +411,12 @@ export default function WorkflowBottomToolbar({
     }
   }, [showWorkflowsMenu, fetchWorkflows]);
 
-  // Get CSRF token for delete requests
-  const getCsrfToken = useCallback(() => {
-    const match = document.cookie.match(/csrf_token=([^;]+)/);
-    return match ? match[1] : "";
-  }, []);
-
   // Delete workflow
   const deleteWorkflow = useCallback(
     async (workflowId: string) => {
       try {
-        const response = await fetch(`/api/workflows/${workflowId}`, {
+        const response = await apiFetch(`/api/workflows/${workflowId}`, {
           method: "DELETE",
-          headers: {
-            "x-csrf-token": getCsrfToken(),
-          },
         });
         if (response.ok) {
           setWorkflows((prev) => prev.filter((w) => w.id !== workflowId));
@@ -436,8 +430,90 @@ export default function WorkflowBottomToolbar({
         console.error("Failed to delete workflow:", error);
       }
     },
-    [getCsrfToken, currentWorkflowId, onNewWorkflow]
+    [currentWorkflowId, onNewWorkflow]
   );
+
+  // Auto-layout nodes using dagre for proper graph layout
+  const cleanLayout = useCallback(() => {
+    const nodes = getNodes();
+    const edges = getEdges();
+
+    if (nodes.length === 0) return;
+
+    // Layout constants
+    const NODE_WIDTH = 280;
+    const NODE_SEP = 250; // Vertical spacing between nodes (accounts for tall nodes)
+    const RANK_SEP = 100; // Horizontal spacing between ranks/columns
+
+    // Create dagre graph
+    const dagreGraph = new Dagre.graphlib.Graph();
+    dagreGraph.setDefaultEdgeLabel(() => ({}));
+    dagreGraph.setGraph({
+      rankdir: "LR", // Left to right layout
+      nodesep: NODE_SEP,
+      ranksep: RANK_SEP,
+      align: "UL", // Align nodes to upper-left for cleaner look
+      ranker: "tight-tree", // Tighter layout
+    });
+
+    // Add nodes to dagre graph with actual measured heights
+    nodes.forEach((node) => {
+      // Estimate height based on node type
+      let nodeHeight = 120; // Default for small nodes like Prompt
+      if (node.type === "file" || node.type === "imageInput") {
+        nodeHeight = 400;
+      } else if (
+        node.type === "nanoBananaPro" ||
+        node.type === "kling26" ||
+        node.type === "kling25Turbo" ||
+        node.type === "wan26" ||
+        node.type === "videoConcat" ||
+        node.type === "videoSubtitles" ||
+        node.type === "videoTrim" ||
+        node.type === "videoTransition"
+      ) {
+        nodeHeight = 450;
+      }
+
+      dagreGraph.setNode(node.id, {
+        width: NODE_WIDTH,
+        height: nodeHeight,
+      });
+    });
+
+    // Add edges to dagre graph
+    edges.forEach((edge) => {
+      dagreGraph.setEdge(edge.source, edge.target);
+    });
+
+    // Run the layout algorithm
+    Dagre.layout(dagreGraph);
+
+    // Update node positions from dagre results
+    setNodes((nds) =>
+      nds.map((node) => {
+        const nodeWithPosition = dagreGraph.node(node.id);
+        if (nodeWithPosition) {
+          return {
+            ...node,
+            position: {
+              // Dagre gives center position, convert to top-left for React Flow
+              x: nodeWithPosition.x - nodeWithPosition.width / 2,
+              y: nodeWithPosition.y - nodeWithPosition.height / 2,
+            },
+            targetPosition: Position.Left,
+            sourcePosition: Position.Right,
+          };
+        }
+        return node;
+      })
+    );
+
+    // Fit view after layout
+    setTimeout(() => {
+      fitView({ padding: 0.2, duration: 300 });
+    }, 50);
+  }, [getNodes, getEdges, setNodes, fitView]);
 
   // Group workflows by date
   const groupWorkflowsByDate = (workflows: SavedWorkflow[]) => {
@@ -971,9 +1047,9 @@ export default function WorkflowBottomToolbar({
 
         <Divider />
 
-        {/* Settings */}
-        <ToolbarButton title="Settings">
-          <SettingsIcon />
+        {/* Clean Layout */}
+        <ToolbarButton onClick={cleanLayout} title="Clean Layout">
+          <CleanLayoutIcon />
         </ToolbarButton>
       </div>
     </div>
@@ -1000,7 +1076,6 @@ function getDefaultNodeData(type: NodeType) {
         label: "Kling 2.6 Pro",
         mode: "text-to-video",
         duration: "5",
-        aspectRatio: "16:9",
         audioEnabled: true,
         cfgScale: 0.5,
       };
@@ -1009,7 +1084,6 @@ function getDefaultNodeData(type: NodeType) {
         label: "Kling 2.5 Turbo",
         mode: "text-to-video",
         duration: "5",
-        aspectRatio: "16:9",
         cfgScale: 0.5,
       };
     case "wan26":
@@ -1017,7 +1091,6 @@ function getDefaultNodeData(type: NodeType) {
         label: "Wan 2.6",
         mode: "text-to-video",
         duration: "5",
-        aspectRatio: "16:9",
         resolution: "720p",
         enhanceEnabled: false,
       };
@@ -1026,24 +1099,40 @@ function getDefaultNodeData(type: NodeType) {
         label: "Nano Banana Pro",
         prompt: "",
         mode: "text-to-image",
-        aspectRatio: "1:1",
         resolution: "1K",
         outputFormat: "png",
         numImages: 1,
         enableWebSearch: false,
         enableSafetyChecker: true,
       };
-    case "videoEditor":
+    case "videoConcat":
       return {
-        label: "Video Editor",
-        operation: "trim",
-        transition: { type: "fade", duration: 0.3, easing: "easeInOut" },
-        audio: { enabled: true, volume: 1, ducking: false },
-        subtitleStyle: "tiktok",
-        outputQuality: "high",
-        outputAspectRatio: "9:16",
-        outputResolution: "1080p",
+        label: "Concat",
+        transition: "crossfade",
+        transitionDuration: 0.5,
       };
+    case "videoSubtitles":
+      return {
+        label: "Subtitles",
+        style: "tiktok",
+        position: "bottom",
+        autoGenerate: true,
+      };
+    case "videoTrim":
+      return {
+        label: "Trim",
+        startTime: 0,
+        endTime: 5,
+      };
+    case "videoTransition":
+      return {
+        label: "Transition",
+        transitionType: "fade",
+        duration: 0.5,
+        easing: "easeInOut",
+      };
+    case "file":
+      return { label: "File" };
     default:
       return { label: "Node" };
   }

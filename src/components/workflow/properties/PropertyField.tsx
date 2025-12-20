@@ -249,25 +249,65 @@ export const PanelHeader = memo(function PanelHeader({
   );
 });
 
+// Loading spinner component
+const LoadingSpinner = memo(function LoadingSpinner() {
+  return (
+    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="3"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      />
+    </svg>
+  );
+});
+
 // Run button component
 interface RunButtonProps {
   label: string;
   onClick?: () => void;
+  isLoading?: boolean;
+  disabled?: boolean;
+  disabledReason?: string;
 }
 
 export const RunButton = memo(function RunButton({
   label,
   onClick,
+  isLoading = false,
+  disabled = false,
+  disabledReason,
 }: RunButtonProps) {
+  const isDisabled = disabled || isLoading;
+
   return (
     <div className="border-t border-zinc-800 p-3">
       <button
         onClick={onClick}
-        className="flex w-full items-center justify-center gap-2 rounded-md bg-cyan-500 px-3 py-1.5 text-xs font-medium text-black transition-colors hover:bg-cyan-400"
+        disabled={isDisabled}
+        title={disabledReason}
+        className={`flex w-full items-center justify-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+          isDisabled
+            ? "cursor-not-allowed bg-zinc-700 text-zinc-400"
+            : "bg-cyan-500 text-black hover:bg-cyan-400"
+        }`}
       >
-        <RunIcon />
-        {label}
+        {isLoading ? <LoadingSpinner /> : <RunIcon />}
+        {isLoading ? "Generating..." : label}
       </button>
+      {disabledReason && !isLoading && (
+        <p className="mt-1.5 text-center text-[10px] text-gray-500">
+          {disabledReason}
+        </p>
+      )}
     </div>
   );
 });

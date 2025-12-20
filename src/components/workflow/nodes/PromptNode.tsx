@@ -2,6 +2,7 @@
 
 import { memo, useRef, useCallback, useState, useEffect } from "react";
 import type { NodeProps, Node } from "@xyflow/react";
+import { useReactFlow } from "@xyflow/react";
 import ReactMarkdown from "react-markdown";
 import BaseNode from "./BaseNode";
 import type { PromptNodeData } from "../types";
@@ -10,17 +11,35 @@ const MIN_HEIGHT = 80;
 const MAX_HEIGHT = 330;
 
 const PromptNode = memo(function PromptNode({
+  id,
   data,
   selected,
 }: NodeProps<Node<PromptNodeData>>) {
+  const { setNodes } = useReactFlow();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [promptText, setPromptText] = useState(data.prompt || "");
 
+  // Update node data when prompt text changes
+  const updateNodeData = useCallback(
+    (newPrompt: string) => {
+      setNodes((nodes) =>
+        nodes.map((node) =>
+          node.id === id
+            ? { ...node, data: { ...node.data, prompt: newPrompt } }
+            : node
+        )
+      );
+    },
+    [id, setNodes]
+  );
+
   const handleInput = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const textarea = e.target;
-      setPromptText(textarea.value);
+      const newValue = textarea.value;
+      setPromptText(newValue);
+      updateNodeData(newValue);
 
       // Reset height to auto to get the correct scrollHeight
       textarea.style.height = "auto";
@@ -31,7 +50,7 @@ const PromptNode = memo(function PromptNode({
       );
       textarea.style.height = `${newHeight}px`;
     },
-    []
+    [updateNodeData]
   );
 
   const handleWheel = useCallback((e: React.WheelEvent) => {

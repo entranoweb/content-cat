@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { ImageUploadIcon, SwapIcon, CloseIcon } from "../icons";
 
 interface ImageUploadSectionProps {
@@ -64,16 +65,12 @@ export default function ImageUploadSection({
               onChange={(e) => onImageUpload(e, "start")}
             />
             {startImageUrl ? (
-              <img
+              <Image
                 src={startImageUrl}
                 alt="Start frame"
+                fill
+                unoptimized
                 className={`object-contain transition-opacity duration-150 ${isSwapping ? "opacity-0" : "opacity-100"}`}
-                style={{
-                  position: "absolute",
-                  height: "100%",
-                  width: "100%",
-                  inset: 0,
-                }}
               />
             ) : (
               <div className="flex size-full flex-col items-center justify-center rounded-lg border border-dashed border-zinc-700 transition-colors hover:border-zinc-500">
@@ -122,16 +119,12 @@ export default function ImageUploadSection({
               onChange={(e) => onImageUpload(e, "end")}
             />
             {endImageUrl ? (
-              <img
+              <Image
                 src={endImageUrl}
                 alt="End frame"
+                fill
+                unoptimized
                 className={`object-contain transition-opacity duration-150 ${isSwapping ? "opacity-0" : "opacity-100"}`}
-                style={{
-                  position: "absolute",
-                  height: "100%",
-                  width: "100%",
-                  inset: 0,
-                }}
               />
             ) : (
               <div className="flex size-full flex-col items-center justify-center rounded-lg border border-dashed border-zinc-700 transition-colors hover:border-zinc-500">
@@ -183,16 +176,12 @@ export default function ImageUploadSection({
           onChange={(e) => onImageUpload(e, "single")}
         />
         {singleImageUrl ? (
-          <img
+          <Image
             src={singleImageUrl}
             alt="Uploaded image"
+            fill
+            unoptimized
             className="object-contain"
-            style={{
-              position: "absolute",
-              height: "100%",
-              width: "100%",
-              inset: 0,
-            }}
           />
         ) : (
           <div className="flex size-full flex-col items-center justify-center rounded-lg border border-dashed border-zinc-700 transition-colors hover:border-zinc-500">

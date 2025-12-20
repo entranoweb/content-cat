@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { apiFetch } from "@/lib/csrf";
 import Header from "@/components/Header";
 import ImagePromptForm from "@/components/ImagePromptForm";
 import {
@@ -147,7 +148,9 @@ function ImagePageContent() {
 
     // Delete from database
     try {
-      const response = await fetch(`/api/images/${id}`, { method: "DELETE" });
+      const response = await apiFetch(`/api/images/${id}`, {
+        method: "DELETE",
+      });
       if (!response.ok) {
         toast.error("Failed to delete image");
         fetchImages(); // Restore state
@@ -176,7 +179,7 @@ function ImagePageContent() {
 
       for (let i = 0; i < data.count; i++) {
         try {
-          const response = await fetch("/api/generate-image", {
+          const response = await apiFetch("/api/generate-image", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -188,6 +191,7 @@ function ImagePageContent() {
               outputFormat: data.outputFormat,
               imageUrls: data.referenceImages,
             }),
+            timeout: 120000, // 2 minutes for image generation
           });
 
           const result = await response.json();
@@ -202,7 +206,7 @@ function ImagePageContent() {
           if (result.resultUrls && result.resultUrls.length > 0) {
             for (const url of result.resultUrls) {
               // Save to database
-              const saveResponse = await fetch("/api/images", {
+              const saveResponse = await apiFetch("/api/images", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

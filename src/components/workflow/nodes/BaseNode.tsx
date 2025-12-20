@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useCallback, useMemo } from "react";
-import { Handle, Position } from "@xyflow/react";
+import { Handle, Position, useNodeId, useNodes } from "@xyflow/react";
 import type { ReactNode } from "react";
 import { useWorkflowContext, COMPATIBLE_HANDLES } from "../WorkflowContext";
 
@@ -35,6 +35,9 @@ interface BaseNodeProps {
   selected?: boolean;
   inputs?: HandleConfig[];
   outputs?: HandleConfig[];
+  isGenerating?: boolean;
+  onAddInput?: () => void;
+  canAddInput?: boolean;
 }
 
 // Static styles for NodeHandle - defined outside to prevent recreation
@@ -154,6 +157,9 @@ const NodeHandle = memo(function NodeHandle({
   );
 });
 
+// Neon blue color for generating state
+const GENERATING_COLOR = "#22d3ee"; // cyan-400
+
 // Memoized BaseNode component for better performance during drag operations
 const BaseNode = memo(function BaseNode({
   children,
@@ -161,9 +167,33 @@ const BaseNode = memo(function BaseNode({
   selected,
   inputs = [],
   outputs = [],
+  isGenerating = false,
+  onAddInput,
+  canAddInput = false,
 }: BaseNodeProps) {
   const { connectingHandleType } = useWorkflowContext();
   const isConnecting = connectingHandleType !== null;
+  const nodeId = useNodeId();
+  const allNodes = useNodes();
+
+  // Compute duplicate index for nodes of the same type
+  const duplicateInfo = useMemo(() => {
+    if (!nodeId) return null;
+
+    const currentNode = allNodes.find((n) => n.id === nodeId);
+    if (!currentNode) return null;
+
+    // Get all nodes of the same type
+    const sameTypeNodes = allNodes.filter((n) => n.type === currentNode.type);
+
+    // Only show badge if there are duplicates
+    if (sameTypeNodes.length <= 1) return null;
+
+    // Find the index of the current node (1-based)
+    const index = sameTypeNodes.findIndex((n) => n.id === nodeId) + 1;
+
+    return { index, total: sameTypeNodes.length };
+  }, [nodeId, allNodes]);
 
   // Memoized compatibility checker
   const checkCompatibility = useCallback(
@@ -200,55 +230,130 @@ const BaseNode = memo(function BaseNode({
   }, []);
 
   return (
-    <div
-      className="relative min-w-[280px] rounded-xl transition-all duration-200"
-      style={containerStyle}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between px-2 py-1.5">
-        <span className="text-[11px] font-normal text-white">{label}</span>
-        <button
-          className="text-gray-400 transition-colors hover:text-white"
-          onClick={handleButtonClick}
-        >
-          <MenuIcon />
-        </button>
+    <div className="relative">
+      {/* Animated generating border */}
+      {isGenerating && (
+        <>
+          {/* Outer glow pulse */}
+          <div
+            className="absolute -inset-[4px] rounded-[16px]"
+            style={{
+              background: `linear-gradient(135deg, ${GENERATING_COLOR}, #818cf8, #c084fc, #818cf8, ${GENERATING_COLOR})`,
+              backgroundSize: "300% 300%",
+              animation: "borderShimmer 3s ease infinite",
+              filter: "blur(8px)",
+              opacity: 0.5,
+            }}
+          />
+          {/* Animated gradient border */}
+          <div
+            className="absolute -inset-[2px] rounded-[14px]"
+            style={{
+              background: `linear-gradient(135deg, ${GENERATING_COLOR}, #818cf8, #c084fc, #818cf8, ${GENERATING_COLOR})`,
+              backgroundSize: "300% 300%",
+              animation: "borderShimmer 3s ease infinite",
+            }}
+          />
+          {/* Inner mask to create border effect */}
+          <div
+            className="absolute inset-0 rounded-xl"
+            style={{
+              backgroundColor: selected ? "rgb(55, 55, 60)" : "rgb(43, 43, 47)",
+            }}
+          />
+        </>
+      )}
+
+      <div
+        className={`relative min-w-[280px] rounded-xl transition-all duration-200 ${isGenerating ? "z-10" : ""}`}
+        style={containerStyle}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-2 py-1.5">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] font-normal text-white">{label}</span>
+            {duplicateInfo && (
+              <span
+                className="rounded px-1 py-0.5 text-[9px] font-semibold"
+                style={{
+                  backgroundColor: "#F97316",
+                  color: "#FFFFFF",
+                }}
+              >
+                {duplicateInfo.index}
+              </span>
+            )}
+          </div>
+          <button
+            className="text-gray-400 transition-colors hover:text-white"
+            onClick={handleButtonClick}
+          >
+            <MenuIcon />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-2">{children}</div>
+
+        {/* Input Handles */}
+        {inputs.map((input, index) => (
+          <NodeHandle
+            key={input.id}
+            type="target"
+            position={Position.Left}
+            id={input.id}
+            label={input.label}
+            color={input.color || "#EF9092"}
+            selected={selected}
+            top={`${65 + index * 36}px`}
+            isConnecting={isConnecting}
+            isCompatible={checkCompatibility(input.id, "target")}
+          />
+        ))}
+
+        {/* Add Input Button */}
+        {canAddInput && onAddInput && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddInput();
+            }}
+            className="nodrag absolute left-0 flex h-4 w-4 -translate-x-1/2 items-center justify-center rounded-full bg-zinc-700 text-white transition-all hover:scale-110 hover:bg-zinc-600"
+            style={{ top: `${65 + inputs.length * 36}px` }}
+            title="Add video input"
+          >
+            <svg
+              width="10"
+              height="10"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </button>
+        )}
+
+        {/* Output Handles */}
+        {outputs.map((output, index) => (
+          <NodeHandle
+            key={output.id}
+            type="source"
+            position={Position.Right}
+            id={output.id}
+            label={output.label}
+            color={output.color || "#6EDDB3"}
+            selected={selected}
+            top={`${65 + index * 36}px`}
+            isConnecting={isConnecting}
+            isCompatible={checkCompatibility(output.id, "source")}
+          />
+        ))}
       </div>
-
-      {/* Content */}
-      <div className="p-2">{children}</div>
-
-      {/* Input Handles */}
-      {inputs.map((input, index) => (
-        <NodeHandle
-          key={input.id}
-          type="target"
-          position={Position.Left}
-          id={input.id}
-          label={input.label}
-          color={input.color || "#EF9092"}
-          selected={selected}
-          top={`${65 + index * 36}px`}
-          isConnecting={isConnecting}
-          isCompatible={checkCompatibility(input.id, "target")}
-        />
-      ))}
-
-      {/* Output Handles */}
-      {outputs.map((output, index) => (
-        <NodeHandle
-          key={output.id}
-          type="source"
-          position={Position.Right}
-          id={output.id}
-          label={output.label}
-          color={output.color || "#6EDDB3"}
-          selected={selected}
-          top={`${65 + index * 36}px`}
-          isConnecting={isConnecting}
-          isCompatible={checkCompatibility(output.id, "source")}
-        />
-      ))}
     </div>
   );
 });

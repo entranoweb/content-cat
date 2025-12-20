@@ -9,13 +9,23 @@ import WorkflowToolbar from "@/components/workflow/WorkflowToolbar";
 import WorkflowPropertiesPanel from "@/components/workflow/WorkflowPropertiesPanel";
 import { WorkflowProvider } from "@/components/workflow/WorkflowContext";
 import { useWorkflow } from "@/hooks/useWorkflow";
+import { useWorkflowExecution } from "@/hooks/useWorkflowExecution";
 import {
   getWorkflow,
   createWorkflow,
   updateWorkflow,
 } from "@/lib/api/workflows";
-import type { WorkflowNode, WorkflowEdge } from "@/components/workflow/types";
+import type { WorkflowNode } from "@/components/workflow/types";
 import type { SavedWorkflow } from "@/components/workflow/WorkflowBottomToolbar";
+
+// Node types that have configuration panels
+const CONFIGURABLE_NODE_TYPES = new Set([
+  "nanoBananaPro",
+  "kling26",
+  "kling25Turbo",
+  "wan26",
+  "videoEditor",
+]);
 
 function WorkflowPageContent() {
   const searchParams = useSearchParams();
@@ -47,12 +57,33 @@ function WorkflowPageContent() {
     canRedo,
     setNodes,
     setEdges,
+    copySelectedNodes,
+    pasteNodes,
+    selectAllNodes,
   } = useWorkflow();
 
   // Get the selected node object
   const selectedNode = selectedNodeId
     ? nodes.find((n) => n.id === selectedNodeId) || null
     : null;
+
+  // Workflow execution
+  const {
+    executeNode,
+    executeAll,
+    canExecuteNode,
+    isExecuting,
+    executingNodeId,
+    executingNodeIds,
+  } = useWorkflowExecution();
+
+  // Get execution state for the selected node
+  const executionState = selectedNodeId
+    ? canExecuteNode(selectedNodeId)
+    : { canExecute: false, reason: "No node selected" };
+
+  // Check if the selected node is currently executing
+  const isSelectedNodeExecuting = selectedNodeId === executingNodeId;
 
   // Load workflow from URL on mount
   useEffect(() => {
@@ -90,6 +121,38 @@ function WorkflowPageContent() {
       }
     }
   }, [workflowId, router]);
+
+  // Keyboard shortcuts for copy/paste
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check if we're in an input field
+      const target = event.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+
+      const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+      const modifierKey = isMac ? event.metaKey : event.ctrlKey;
+
+      if (modifierKey && event.key === "c") {
+        event.preventDefault();
+        copySelectedNodes();
+      } else if (modifierKey && event.key === "v") {
+        event.preventDefault();
+        pasteNodes();
+      } else if (modifierKey && event.key === "a") {
+        event.preventDefault();
+        selectAllNodes();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [copySelectedNodes, pasteNodes, selectAllNodes]);
 
   // Auto-save workflow with debounce
   const saveWorkflow = useCallback(async () => {
@@ -197,15 +260,35 @@ function WorkflowPageContent() {
   );
 
   const handleRunNode = useCallback(
-    (nodeId: string) => {
+    async (nodeId: string) => {
       const node = nodes.find((n) => n.id === nodeId);
       if (node) {
         toast.info(`Running ${node.data.label || node.type}...`);
-        // TODO: Implement actual node execution
+        const result = await executeNode(nodeId);
+        if (result.success) {
+          toast.success(`${node.data.label || node.type} completed`);
+        } else {
+          toast.error(result.error || "Execution failed");
+        }
       }
     },
-    [nodes]
+    [nodes, executeNode]
   );
+
+  // Handle execution from properties panel
+  const handleExecuteSelectedNode = useCallback(async () => {
+    if (!selectedNodeId) return;
+    const node = nodes.find((n) => n.id === selectedNodeId);
+    if (node) {
+      toast.info(`Running ${node.data.label || node.type}...`);
+      const result = await executeNode(selectedNodeId);
+      if (result.success) {
+        toast.success(`${node.data.label || node.type} completed`);
+      } else {
+        toast.error(result.error || "Execution failed");
+      }
+    }
+  }, [selectedNodeId, nodes, executeNode]);
 
   const handleLoadWorkflow = useCallback(
     async (workflow: SavedWorkflow) => {
@@ -235,6 +318,21 @@ function WorkflowPageContent() {
     clearSelection();
     router.replace("/workflow", { scroll: false });
   }, [setNodes, setEdges, clearSelection, router]);
+
+  // Handle Run All execution
+  const handleRunAll = useCallback(async () => {
+    toast.info("Running all nodes...");
+    const result = await executeAll();
+    if (result.success) {
+      toast.success(
+        `Completed ${result.completed} node${result.completed !== 1 ? "s" : ""}`
+      );
+    } else if (result.failed > 0) {
+      toast.error(
+        `${result.failed} node${result.failed !== 1 ? "s" : ""} failed`
+      );
+    }
+  }, [executeAll]);
 
   return (
     <WorkflowProvider
@@ -274,19 +372,26 @@ function WorkflowPageContent() {
               onPaneClick={handlePaneClick}
               onDeleteNode={handleDeleteNode}
               onRunNode={handleRunNode}
+              onRunAll={handleRunAll}
+              isExecutingAll={isExecuting}
+              executingCount={executingNodeIds.length}
               currentWorkflowId={workflowId}
               onLoadWorkflow={handleLoadWorkflow}
               onNewWorkflow={handleNewWorkflow}
             />
           </div>
 
-          {/* Properties Panel - only show when a node is selected */}
-          {selectedNodeId && (
-            <WorkflowPropertiesPanel
-              selectedNode={selectedNode}
-              onUpdateNode={updateNodeData}
-            />
-          )}
+          {/* Properties Panel - only show for configurable nodes */}
+          {selectedNode &&
+            CONFIGURABLE_NODE_TYPES.has(selectedNode.type || "") && (
+              <WorkflowPropertiesPanel
+                selectedNode={selectedNode}
+                onUpdateNode={updateNodeData}
+                onExecute={handleExecuteSelectedNode}
+                isExecuting={isSelectedNodeExecuting}
+                executionState={executionState}
+              />
+            )}
         </div>
       </div>
     </WorkflowProvider>

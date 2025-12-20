@@ -38,6 +38,11 @@ interface UseWorkflowOptions {
   onNodeSelect?: (nodeId: string | null) => void;
 }
 
+interface ClipboardData {
+  nodes: WorkflowNode[];
+  edges: WorkflowEdge[];
+}
+
 interface UseWorkflowReturn {
   nodes: WorkflowNode[];
   edges: WorkflowEdge[];
@@ -58,12 +63,22 @@ interface UseWorkflowReturn {
   redo: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  // Clipboard
+  copySelectedNodes: () => void;
+  pasteNodes: (offset?: { x: number; y: number }) => void;
+  hasClipboardData: boolean;
+  // Selection
+  selectAllNodes: () => void;
 }
 
 export function useWorkflow(options?: UseWorkflowOptions): UseWorkflowReturn {
   const [nodes, setNodes] = useState<WorkflowNode[]>(initialNodes);
   const [edges, setEdges] = useState<WorkflowEdge[]>(initialEdges);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
+  // Clipboard for copy/paste
+  const clipboardRef = useRef<ClipboardData | null>(null);
+  const [hasClipboardData, setHasClipboardData] = useState(false);
 
   // History management
   const historyRef = useRef<HistoryState[]>([
@@ -281,6 +296,89 @@ export function useWorkflow(options?: UseWorkflowOptions): UseWorkflowReturn {
     updateHistoryState();
   }, [updateHistoryState]);
 
+  // Select all nodes
+  const selectAllNodes = useCallback(() => {
+    setNodes((nds) => nds.map((node) => ({ ...node, selected: true })));
+  }, []);
+
+  // Copy selected nodes to clipboard
+  const copySelectedNodes = useCallback(() => {
+    // Get all selected nodes
+    const selectedNodes = nodes.filter((node) => node.selected);
+    if (selectedNodes.length === 0) return;
+
+    // Get IDs of selected nodes
+    const selectedIds = new Set(selectedNodes.map((n) => n.id));
+
+    // Get edges that connect selected nodes to each other
+    const connectedEdges = edges.filter(
+      (edge) => selectedIds.has(edge.source) && selectedIds.has(edge.target)
+    );
+
+    // Store in clipboard
+    clipboardRef.current = {
+      nodes: selectedNodes,
+      edges: connectedEdges,
+    };
+    setHasClipboardData(true);
+  }, [nodes, edges]);
+
+  // Paste nodes from clipboard
+  const pasteNodes = useCallback(
+    (offset: { x: number; y: number } = { x: 50, y: 50 }) => {
+      if (!clipboardRef.current) return;
+
+      const { nodes: clipboardNodes, edges: clipboardEdges } =
+        clipboardRef.current;
+
+      // Create a mapping from old IDs to new IDs
+      const idMapping = new Map<string, string>();
+      const timestamp = Date.now();
+
+      // Create new nodes with new IDs and offset positions
+      const newNodes: WorkflowNode[] = clipboardNodes.map((node, index) => {
+        const newId = `node-${timestamp}-${index}`;
+        idMapping.set(node.id, newId);
+
+        return {
+          ...node,
+          id: newId,
+          position: {
+            x: node.position.x + offset.x,
+            y: node.position.y + offset.y,
+          },
+          selected: true, // Select the pasted nodes
+          data: {
+            ...node.data,
+            // Clear any generated results when pasting
+            imageUrl: undefined,
+            videoUrl: undefined,
+            isGenerating: false,
+          },
+        };
+      });
+
+      // Create new edges with updated source/target IDs
+      const newEdges: WorkflowEdge[] = clipboardEdges.map((edge, index) => ({
+        ...edge,
+        id: `edge-${timestamp}-${index}`,
+        source: idMapping.get(edge.source) || edge.source,
+        target: idMapping.get(edge.target) || edge.target,
+      }));
+
+      // Deselect existing nodes and add new ones
+      setNodes((nds) => {
+        const deselectedNodes = nds.map((n) => ({ ...n, selected: false }));
+        const updatedNodes = [...deselectedNodes, ...newNodes];
+        saveToHistory(updatedNodes, [...edges, ...newEdges]);
+        return updatedNodes;
+      });
+
+      setEdges((eds) => [...eds, ...newEdges]);
+    },
+    [edges, saveToHistory]
+  );
+
   return {
     nodes,
     edges,
@@ -300,6 +398,10 @@ export function useWorkflow(options?: UseWorkflowOptions): UseWorkflowReturn {
     redo,
     canUndo,
     canRedo,
+    copySelectedNodes,
+    pasteNodes,
+    hasClipboardData,
+    selectAllNodes,
   };
 }
 
@@ -356,16 +458,35 @@ function getDefaultNodeData(type: NodeType): WorkflowNode["data"] {
         enableWebSearch: false,
         enableSafetyChecker: true,
       };
-    case "videoEditor":
+    case "videoConcat":
       return {
-        label: "Video Editor",
-        operation: "trim",
-        transition: { type: "fade", duration: 0.3, easing: "easeInOut" },
-        audio: { enabled: true, volume: 1, ducking: false },
-        subtitleStyle: "tiktok",
-        outputQuality: "high",
-        outputAspectRatio: "9:16",
-        outputResolution: "1080p",
+        label: "Concat",
+        aspectRatio: "16:9",
+        transition: "crossfade",
+        transitionDuration: 0.5,
+      };
+    case "videoSubtitles":
+      return {
+        label: "Subtitles",
+        aspectRatio: "9:16",
+        style: "tiktok",
+        position: "bottom",
+        autoGenerate: true,
+      };
+    case "videoTrim":
+      return {
+        label: "Trim",
+        aspectRatio: "16:9",
+        startTime: 0,
+        endTime: 5,
+      };
+    case "videoTransition":
+      return {
+        label: "Transition",
+        aspectRatio: "16:9",
+        transitionType: "fade",
+        duration: 0.5,
+        easing: "easeInOut",
       };
     default:
       return { label: "Node" };

@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback } from "react";
+import { memo } from "react";
 import type {
   Kling26NodeData,
   Kling25TurboNodeData,
@@ -21,16 +21,27 @@ import {
 
 type ModelNodeData = Kling26NodeData | Kling25TurboNodeData | Wan26NodeData;
 
+interface ExecutionState {
+  canExecute: boolean;
+  reason?: string;
+}
+
 interface ModelPropertiesPanelProps {
   nodeType: string;
   nodeData: Partial<ModelNodeData>;
   onUpdate: (key: string, value: unknown) => void;
+  onExecute?: () => void;
+  isExecuting?: boolean;
+  executionState?: ExecutionState;
 }
 
 export const ModelPropertiesPanel = memo(function ModelPropertiesPanel({
   nodeType,
   nodeData,
   onUpdate,
+  onExecute,
+  isExecuting = false,
+  executionState,
 }: ModelPropertiesPanelProps) {
   const config = MODEL_CONFIGS[nodeType];
   if (!config) return null;
@@ -63,7 +74,11 @@ export const ModelPropertiesPanel = memo(function ModelPropertiesPanel({
 
   return (
     <PanelContainer>
-      <PanelHeader name={config.name} color={config.color} price={config.price} />
+      <PanelHeader
+        name={config.name}
+        color={config.color}
+        price={config.price}
+      />
 
       <PanelBody>
         <SelectField
@@ -186,7 +201,13 @@ export const ModelPropertiesPanel = memo(function ModelPropertiesPanel({
         )}
       </PanelBody>
 
-      <RunButton label="Run selected" />
+      <RunButton
+        label="Generate Video"
+        onClick={onExecute}
+        isLoading={isExecuting}
+        disabled={!executionState?.canExecute}
+        disabledReason={executionState?.reason}
+      />
     </PanelContainer>
   );
 });

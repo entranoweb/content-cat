@@ -2,10 +2,10 @@
 
 import { memo, useRef, useState, useEffect, useCallback, useMemo } from "react";
 import type { NodeProps, Node } from "@xyflow/react";
-import { useReactFlow } from "@xyflow/react";
+import { useEdges, useNodes } from "@xyflow/react";
 import BaseNode from "./BaseNode";
 import { downloadMedia } from "./MediaSaveOverlay";
-import type { Wan26NodeData } from "../types";
+import type { VideoTransitionNodeData } from "../types";
 import { getContainerHeight, NODE_WIDTH } from "../utils/aspectRatio";
 
 const PlayIcon = () => (
@@ -31,6 +31,20 @@ const DownloadIcon = () => (
   </svg>
 );
 
+const TransitionIcon = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+  >
+    <path d="M5 12h14" />
+    <path d="M12 5l7 7-7 7" />
+  </svg>
+);
+
 const VideoIcon = () => (
   <svg
     width="32"
@@ -46,73 +60,54 @@ const VideoIcon = () => (
   </svg>
 );
 
-const Wan26Node = memo(function Wan26Node({
+const TRANSITION_LABELS: Record<string, string> = {
+  none: "None",
+  fade: "Fade",
+  crossfade: "Crossfade",
+  slideLeft: "Slide Left",
+  slideRight: "Slide Right",
+  slideUp: "Slide Up",
+  slideDown: "Slide Down",
+  zoomIn: "Zoom In",
+  zoomOut: "Zoom Out",
+  wipeLeft: "Wipe Left",
+  wipeRight: "Wipe Right",
+  blur: "Blur",
+  glitch: "Glitch",
+  flash: "Flash",
+};
+
+const VideoTransitionNode = memo(function VideoTransitionNode({
   id,
   data,
   selected,
-}: NodeProps<Node<Wan26NodeData>>) {
+}: NodeProps<Node<VideoTransitionNodeData>>) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [duration, setDuration] = useState<string>("0:00");
-  const [sourceAspectRatio, setSourceAspectRatio] = useState<string | null>(
-    null
-  );
-  const { getNodes, getEdges } = useReactFlow();
+  const edges = useEdges();
+  const nodes = useNodes();
 
-  // Detect aspect ratio from connected source nodes
-  useEffect(() => {
-    const checkSourceAspectRatio = () => {
-      const edges = getEdges();
-      const nodes = getNodes();
+  // Get connected source nodes
+  const connectedSources = useMemo(() => {
+    const incomingEdges = edges.filter((edge) => edge.target === id);
+    return incomingEdges
+      .map((edge) => nodes.find((n) => n.id === edge.source))
+      .filter((n): n is Node => n !== undefined);
+  }, [edges, nodes, id]);
 
-      // Find edges connected to this node
-      const incomingEdges = edges.filter((edge) => edge.target === id);
-
-      // Prioritize image inputs for aspect ratio detection
-      const imageHandles = ["image", "firstFrame", "lastFrame"];
-      for (const handleId of imageHandles) {
-        const imageEdge = incomingEdges.find(
-          (e) => e.targetHandle === handleId
-        );
-        if (imageEdge) {
-          const sourceNode = nodes.find((n) => n.id === imageEdge.source);
-          if (sourceNode) {
-            const sourceData = sourceNode.data as { aspectRatio?: string };
-            if (sourceData.aspectRatio) {
-              setSourceAspectRatio(sourceData.aspectRatio);
-              return;
-            }
-          }
-        }
+  // Detect aspect ratio from first connected source node
+  const detectedAspectRatio = useMemo(() => {
+    if (connectedSources.length > 0) {
+      const firstSource = connectedSources[0];
+      const sourceData = firstSource.data as { aspectRatio?: string };
+      if (sourceData.aspectRatio) {
+        return sourceData.aspectRatio;
       }
-
-      // Fallback: check any connected source for aspect ratio
-      for (const edge of incomingEdges) {
-        const sourceNode = nodes.find((n) => n.id === edge.source);
-        if (sourceNode) {
-          const sourceData = sourceNode.data as { aspectRatio?: string };
-          if (sourceData.aspectRatio) {
-            setSourceAspectRatio(sourceData.aspectRatio);
-            return;
-          }
-        }
-      }
-
-      setSourceAspectRatio(null);
-    };
-
-    // Check immediately
-    checkSourceAspectRatio();
-
-    // Set up an interval to poll for changes
-    const interval = setInterval(checkSourceAspectRatio, 500);
-
-    return () => clearInterval(interval);
-  }, [id, getNodes, getEdges]);
-
-  // User override takes precedence, then detected, then default
-  const detectedAspectRatio = data.aspectRatio || sourceAspectRatio || "16:9";
+    }
+    return data.aspectRatio || "16:9";
+  }, [connectedSources, data.aspectRatio]);
 
   // Calculate container height based on detected aspect ratio
   const containerHeight = useMemo(
@@ -161,14 +156,16 @@ const Wan26Node = memo(function Wan26Node({
     [data.videoUrl]
   );
 
+  const transitionLabel =
+    TRANSITION_LABELS[data.transitionType || "fade"] || "Fade";
+
   return (
     <BaseNode
-      label={data.label || "Wan 2.6"}
+      label={data.label || "Transition"}
       selected={selected}
       inputs={[
-        { id: "prompt", label: "Prompt", color: "#A78BFA" },
-        { id: "video", label: "Video", color: "#EF9092" },
-        { id: "image", label: "Image", color: "#F59E0B" },
+        { id: "videoIn", label: "Video In", color: "#EF9092" },
+        { id: "videoOut", label: "Video Out", color: "#EF9092" },
       ]}
       outputs={[{ id: "video", label: "Video", color: "#EF9092" }]}
       isGenerating={data.isGenerating}
@@ -187,7 +184,7 @@ const Wan26Node = memo(function Wan26Node({
               <div className="flex flex-col items-center gap-2">
                 <VideoIcon />
                 <span className="animate-pulse text-[10px] text-zinc-500">
-                  Generating...
+                  Applying transition...
                 </span>
               </div>
             </div>
@@ -217,14 +214,12 @@ const Wan26Node = memo(function Wan26Node({
                 }}
               >
                 <div className="flex items-center gap-3">
-                  {/* Play Button */}
                   <button
                     onClick={togglePlayback}
                     className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-110 hover:bg-white/30"
                   >
                     <PlayIcon />
                   </button>
-                  {/* Save Button */}
                   <button
                     onClick={handleSave}
                     className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-110 hover:bg-white/30"
@@ -239,7 +234,7 @@ const Wan26Node = memo(function Wan26Node({
             </div>
           ) : (
             <div
-              className="flex h-full w-full items-center justify-center"
+              className="flex h-full w-full flex-col items-center justify-center gap-2"
               style={{
                 backgroundImage: `
                   linear-gradient(45deg, #1f1f23 25%, transparent 25%),
@@ -252,6 +247,7 @@ const Wan26Node = memo(function Wan26Node({
                 backgroundColor: "#2b2b2f",
               }}
             >
+              <TransitionIcon />
               <span className="text-[10px] text-gray-500">No output yet</span>
             </div>
           )}
@@ -263,7 +259,10 @@ const Wan26Node = memo(function Wan26Node({
             {detectedAspectRatio}
           </span>
           <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[8px] text-gray-400">
-            {data.duration || "5"}s
+            {transitionLabel}
+          </span>
+          <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[8px] text-gray-400">
+            {data.duration || 0.5}s
           </span>
         </div>
       </div>
@@ -271,4 +270,4 @@ const Wan26Node = memo(function Wan26Node({
   );
 });
 
-export default Wan26Node;
+export default VideoTransitionNode;

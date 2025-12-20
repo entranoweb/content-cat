@@ -1,4 +1,4 @@
 export { ModelPropertiesPanel } from "./ModelPropertiesPanel";
-export { VideoEditorPanel } from "./VideoEditorPanel";
 export { NanoBananaProPanel } from "./NanoBananaProPanel";
+export { VideoEditingPanel } from "./VideoEditingPanel";
 export * from "./PropertyField";

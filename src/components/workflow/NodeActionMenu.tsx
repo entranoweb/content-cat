@@ -4,6 +4,18 @@ import { useMemo } from "react";
 import { useStore } from "@xyflow/react";
 import type { Node } from "@xyflow/react";
 
+// Node types that support execution (generation and editing nodes)
+const EXECUTABLE_NODE_TYPES = new Set([
+  "nanoBananaPro",
+  "kling26",
+  "kling25Turbo",
+  "wan26",
+  "videoConcat",
+  "videoSubtitles",
+  "videoTrim",
+  "videoTransition",
+]);
+
 // Icons
 const PlayIcon = () => (
   <svg
@@ -97,6 +109,11 @@ export default function NodeActionMenu({
     }
   };
 
+  // Check if selected node is executable
+  const isExecutable = selectedNode?.type
+    ? EXECUTABLE_NODE_TYPES.has(selectedNode.type)
+    : false;
+
   return (
     <div
       className={`absolute z-50 flex items-center gap-1 rounded-xl border border-white/10 bg-zinc-900/90 p-1 shadow-lg backdrop-blur-xl transition-opacity duration-150 ${
@@ -110,17 +127,21 @@ export default function NodeActionMenu({
         transform: showBelow ? "translate(-50%, 0)" : "translate(-50%, -100%)",
       }}
     >
-      {/* Run Button */}
-      <button
-        onClick={handleRun}
-        className="flex h-8 w-8 items-center justify-center rounded-[10px] text-white/70 transition-all duration-200 hover:bg-white/10 hover:text-white"
-        title="Run node"
-      >
-        <PlayIcon />
-      </button>
+      {/* Run Button - only for executable nodes */}
+      {isExecutable && (
+        <>
+          <button
+            onClick={handleRun}
+            className="flex h-8 w-8 items-center justify-center rounded-[10px] text-white/70 transition-all duration-200 hover:bg-white/10 hover:text-white"
+            title="Run node"
+          >
+            <PlayIcon />
+          </button>
 
-      {/* Divider */}
-      <div className="h-5 w-px bg-white/10" />
+          {/* Divider */}
+          <div className="h-5 w-px bg-white/10" />
+        </>
+      )}
 
       {/* Delete Button */}
       <button

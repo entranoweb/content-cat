@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
+import { apiFetch } from "@/lib/csrf";
 import { ChevronDownIcon, CloseIcon, KeyIcon, TrashIcon } from "./icons";
 
 interface ApiKey {
@@ -22,6 +23,49 @@ const SERVICES = [
   { id: "fal", name: "fal.ai", description: "Image & video generation API" },
 ];
 
+// Validation patterns for different services
+const API_KEY_VALIDATORS: Record<
+  string,
+  {
+    pattern: RegExp;
+    example: string;
+    description: string;
+  }
+> = {
+  fal: {
+    // fal.ai keys are: UUID:32-char-hex (e.g., 8cc1454c-94ce-4036-a5eb-47391dbf99dd:b6982599b42886db4513d7a2096f5604)
+    pattern:
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:[0-9a-f]{32}$/i,
+    example:
+      "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    description: "UUID followed by colon and 32-character secret",
+  },
+};
+
+function validateApiKey(
+  key: string,
+  service: string
+): { isValid: boolean; error?: string } {
+  const validator = API_KEY_VALIDATORS[service];
+  if (!validator) {
+    // No validator for this service, accept any non-empty key
+    return { isValid: key.trim().length > 0 };
+  }
+
+  if (!key.trim()) {
+    return { isValid: false, error: "API key is required" };
+  }
+
+  if (!validator.pattern.test(key.trim())) {
+    return {
+      isValid: false,
+      error: `Invalid format. Expected: ${validator.example}`,
+    };
+  }
+
+  return { isValid: true };
+}
+
 export default function ApiKeysModal({ isOpen, onClose }: ApiKeysModalProps) {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,6 +73,10 @@ export default function ApiKeysModal({ isOpen, onClose }: ApiKeysModalProps) {
   const [selectedService, setSelectedService] = useState("fal");
   const [isValidating, setIsValidating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Validate key format when key or service changes
+  const keyValidation = validateApiKey(newKey, selectedService);
+  const isKeyFormatValid = keyValidation.isValid;
   const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
   const serviceDropdownRef = useRef<HTMLButtonElement>(null);
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
@@ -40,7 +88,7 @@ export default function ApiKeysModal({ isOpen, onClose }: ApiKeysModalProps) {
 
   const fetchApiKeys = useCallback(async () => {
     try {
-      const response = await fetch("/api/api-keys");
+      const response = await apiFetch("/api/api-keys");
       if (response.ok) {
         const keys = await response.json();
         setApiKeys(keys);
@@ -119,7 +167,7 @@ export default function ApiKeysModal({ isOpen, onClose }: ApiKeysModalProps) {
     setIsValidating(true);
 
     try {
-      const response = await fetch("/api/api-keys/validate", {
+      const response = await apiFetch("/api/api-keys/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ key: newKey, service: selectedService }),
@@ -145,7 +193,7 @@ export default function ApiKeysModal({ isOpen, onClose }: ApiKeysModalProps) {
 
     try {
       const serviceName = SERVICES.find((s) => s.id === selectedService)?.name;
-      const response = await fetch("/api/api-keys", {
+      const response = await apiFetch("/api/api-keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -171,7 +219,7 @@ export default function ApiKeysModal({ isOpen, onClose }: ApiKeysModalProps) {
 
   const handleDelete = async (service: string) => {
     try {
-      const response = await fetch(`/api/api-keys?service=${service}`, {
+      const response = await apiFetch(`/api/api-keys?service=${service}`, {
         method: "DELETE",
       });
       if (response.ok) {
@@ -332,22 +380,34 @@ export default function ApiKeysModal({ isOpen, onClose }: ApiKeysModalProps) {
               value={newKey}
               onChange={(e) => setNewKey(e.target.value)}
               placeholder="Enter your API key..."
-              className="w-full rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm text-white placeholder-gray-500 transition outline-none hover:bg-white/5 focus:bg-white/5"
+              className={`w-full rounded-2xl border bg-zinc-800 px-4 py-2.5 text-sm text-white placeholder-gray-500 transition outline-none hover:bg-white/5 focus:bg-white/5 ${
+                newKey && !isKeyFormatValid
+                  ? "border-red-500/50"
+                  : "border-zinc-700"
+              }`}
             />
+            {newKey && !isKeyFormatValid && keyValidation.error && (
+              <p className="mt-2 text-xs text-red-400">{keyValidation.error}</p>
+            )}
+            {!newKey && API_KEY_VALIDATORS[selectedService] && (
+              <p className="mt-2 text-xs text-gray-500">
+                Format: {API_KEY_VALIDATORS[selectedService].example}
+              </p>
+            )}
           </div>
 
           {/* Actions */}
           <div className="flex gap-3 pt-2">
             <button
               onClick={handleValidate}
-              disabled={!newKey.trim() || isValidating}
+              disabled={!isKeyFormatValid || isValidating}
               className="flex h-10 flex-1 items-center justify-center rounded-xl border border-zinc-700/50 bg-zinc-800/50 text-sm font-medium text-white transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isValidating ? "Validating..." : "Validate"}
             </button>
             <button
               onClick={handleSave}
-              disabled={!newKey.trim() || isSaving}
+              disabled={!isKeyFormatValid || isSaving}
               className="flex h-10 flex-1 items-center justify-center rounded-xl bg-cyan-400 text-sm font-semibold text-black transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSaving ? "Saving..." : "Save"}

@@ -2,6 +2,7 @@
 
 import { memo } from "react";
 import type { NodeProps, Node } from "@xyflow/react";
+import Image from "next/image";
 import BaseNode from "./BaseNode";
 import type { ImageInputNodeData } from "../types";
 
@@ -53,10 +54,12 @@ const ImageInputNode = memo(function ImageInputNode({
           }}
         >
           {data.imageUrl ? (
-            <img
+            <Image
               src={data.imageUrl}
               alt="Input"
-              className="h-full w-full rounded-lg object-cover"
+              fill
+              unoptimized
+              className="rounded-lg object-cover"
             />
           ) : (
             <button className="nodrag inline-flex items-center justify-center gap-1.5 rounded-lg border border-cyan-400/20 bg-cyan-400/10 px-3 py-1.5 text-[10px] font-medium text-cyan-400 backdrop-blur-sm transition-all hover:bg-cyan-400/20">

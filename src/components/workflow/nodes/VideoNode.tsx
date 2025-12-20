@@ -1,9 +1,11 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import type { NodeProps, Node } from "@xyflow/react";
+import { useReactFlow } from "@xyflow/react";
 import BaseNode from "./BaseNode";
 import type { VideoNodeData } from "../types";
+import { useFileUpload } from "@/hooks/useFileUpload";
 
 const UploadIcon = () => (
   <svg
@@ -64,6 +66,7 @@ const MIN_HEIGHT = 140;
 const DEFAULT_ASPECT_RATIO = 4 / 4.25; // ~4:4.25 for placeholder
 
 export default function VideoNode({
+  id,
   data,
   selected,
 }: NodeProps<Node<VideoNodeData>>) {
@@ -71,7 +74,10 @@ export default function VideoNode({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [aspectRatio, setAspectRatio] = useState<number>(DEFAULT_ASPECT_RATIO);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [duration, setDuration] = useState<string>("0:00");
+  const { setNodes } = useReactFlow();
+  const { upload } = useFileUpload({ category: "workflows" });
 
   // Calculate container height based on aspect ratio
   const containerHeight = Math.min(
@@ -99,23 +105,33 @@ export default function VideoNode({
     }
   }, [data.videoUrl]);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type.startsWith("video/")) {
-      const url = URL.createObjectURL(file);
-      // In a real app, you'd update the node data through a callback
-      // For now, we'll use the video element to preview
-      if (videoRef.current) {
-        videoRef.current.src = url;
+  const handleFileSelect = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file && file.type.startsWith("video/")) {
+        setIsUploading(true);
+        const url = await upload(file);
+        setIsUploading(false);
+
+        if (url) {
+          setNodes((nodes) =>
+            nodes.map((node) =>
+              node.id === id
+                ? { ...node, data: { ...node.data, videoUrl: url } }
+                : node
+            )
+          );
+        }
       }
-    }
-  };
+    },
+    [id, setNodes, upload]
+  );
 
-  const handleUploadClick = () => {
+  const handleUploadClick = useCallback(() => {
     fileInputRef.current?.click();
-  };
+  }, []);
 
-  const togglePlayback = () => {
+  const togglePlayback = useCallback(() => {
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
@@ -124,7 +140,7 @@ export default function VideoNode({
       }
       setIsPlaying(!isPlaying);
     }
-  };
+  }, [isPlaying]);
 
   return (
     <BaseNode
@@ -184,10 +200,11 @@ export default function VideoNode({
             >
               <button
                 onClick={handleUploadClick}
-                className="nodrag inline-flex items-center justify-center gap-1.5 rounded-lg border border-cyan-400/20 bg-cyan-400/10 px-3 py-1.5 text-[10px] font-medium text-cyan-400 backdrop-blur-sm transition-all hover:bg-cyan-400/20"
+                disabled={isUploading}
+                className="nodrag inline-flex items-center justify-center gap-1.5 rounded-lg border border-cyan-400/20 bg-cyan-400/10 px-3 py-1.5 text-[10px] font-medium text-cyan-400 backdrop-blur-sm transition-all hover:bg-cyan-400/20 disabled:opacity-50"
               >
                 <UploadIcon />
-                Upload
+                {isUploading ? "Uploading..." : "Upload"}
               </button>
             </div>
           )}
@@ -206,10 +223,11 @@ export default function VideoNode({
         <div className="flex gap-2">
           <button
             onClick={handleUploadClick}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-[8px] text-gray-300 transition-colors hover:border-zinc-600 hover:text-white"
+            disabled={isUploading}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-[8px] text-gray-300 transition-colors hover:border-zinc-600 hover:text-white disabled:opacity-50"
           >
             <UploadIconSmall />
-            Upload
+            {isUploading ? "Uploading..." : "Upload"}
           </button>
           <button className="flex flex-1 items-center justify-center gap-1.5 rounded border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-[8px] text-gray-300 transition-colors hover:border-zinc-600 hover:text-white">
             <LibraryIcon />

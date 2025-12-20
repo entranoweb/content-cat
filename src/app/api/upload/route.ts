@@ -1,39 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fal } from "@fal-ai/client";
-import { getApiKey } from "@/lib/services/apiKeyService";
 import { requireAuth } from "@/lib/auth-helpers";
 import { logger } from "@/lib/logger";
+import { saveFiles } from "@/lib/storage";
 
 export async function POST(request: NextRequest) {
-  const { user, error: authError } = await requireAuth(request);
+  const { error: authError } = await requireAuth(request);
   if (authError) return authError;
 
   try {
-    const apiKey = await getApiKey(user!.id);
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: "No API key. Add your fal.ai key in Settings." },
-        { status: 400 }
-      );
-    }
-
-    // Configure fal client
-    fal.config({ credentials: apiKey });
-
     const formData = await request.formData();
     const files = formData.getAll("files") as File[];
+    const category = (formData.get("category") as string) || "general";
 
     if (!files || files.length === 0) {
       return NextResponse.json({ error: "No files provided" }, { status: 400 });
     }
 
-    // Upload each file to fal.ai storage
-    const uploadedUrls: string[] = [];
-
-    for (const file of files) {
-      const url = await fal.storage.upload(file);
-      uploadedUrls.push(url);
-    }
+    // Save files to local storage
+    const uploadedUrls = await saveFiles(files, category);
 
     return NextResponse.json({ urls: uploadedUrls });
   } catch (error) {

@@ -1,115 +1,224 @@
 "use client";
 
-import { memo, useRef, useCallback } from "react";
+import { memo, useMemo, useState, useCallback, useEffect } from "react";
 import type { NodeProps, Node } from "@xyflow/react";
 import { useReactFlow } from "@xyflow/react";
+import Image from "next/image";
 import BaseNode from "./BaseNode";
+import { downloadMedia } from "./MediaSaveOverlay";
 import type { NanoBananaProNodeData } from "../types";
+import { getContainerHeight, NODE_WIDTH } from "../utils/aspectRatio";
 
-const UploadIcon = () => (
+const MIN_INPUTS = 5;
+const MAX_INPUTS = 14;
+
+const DownloadIcon = () => (
   <svg
     width="16"
     height="16"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="1.5"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
   >
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-    <polyline points="17 8 12 3 7 8" />
-    <line x1="12" y1="3" x2="12" y2="15" />
+    <polyline points="7 10 12 15 17 10" />
+    <line x1="12" y1="15" x2="12" y2="3" />
   </svg>
 );
 
-const UploadIconSmall = () => (
+const ImageIcon = () => (
   <svg
-    width="14"
-    height="14"
+    width="32"
+    height="32"
     viewBox="0 0 24 24"
     fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
+    className="animate-pulse text-zinc-500"
   >
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-    <polyline points="17 8 12 3 7 8" />
-    <line x1="12" y1="3" x2="12" y2="15" />
+    <path
+      d="M21 19V5C21 3.9 20.1 3 19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19ZM8.5 13.5L11 16.51L14.5 12L19 18H5L8.5 13.5Z"
+      fill="currentColor"
+    />
   </svg>
 );
-
-const LibraryIcon = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-  >
-    <rect x="3" y="3" width="7" height="7" rx="1" />
-    <rect x="14" y="3" width="7" height="7" rx="1" />
-    <rect x="3" y="14" width="7" height="7" rx="1" />
-    <rect x="14" y="14" width="7" height="7" rx="1" />
-  </svg>
-);
-
-const NODE_WIDTH = 248;
-const DEFAULT_ASPECT_RATIO = 4 / 4.25;
-const containerHeight = Math.round(NODE_WIDTH / DEFAULT_ASPECT_RATIO);
 
 const NanoBananaProNode = memo(function NanoBananaProNode({
   id,
   data,
   selected,
 }: NodeProps<Node<NanoBananaProNodeData>>) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { setNodes } = useReactFlow();
+  const [isHovered, setIsHovered] = useState(false);
+  const [sourceAspectRatio, setSourceAspectRatio] = useState<string | null>(
+    null
+  );
+  const { setNodes, getNodes, getEdges } = useReactFlow();
 
-  const handleUploadClick = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
+  // Dynamic input count (5-14)
+  const inputCount = data.inputCount || MIN_INPUTS;
+  const canAddInput = inputCount < MAX_INPUTS;
 
-  const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file && file.type.startsWith("image/")) {
-        const url = URL.createObjectURL(file);
-        setNodes((nodes) =>
-          nodes.map((node) =>
-            node.id === id
-              ? { ...node, data: { ...node.data, imageUrl: url } }
-              : node
-          )
-        );
+  // Detect aspect ratio from connected source nodes
+  useEffect(() => {
+    const checkSourceAspectRatio = () => {
+      const edges = getEdges();
+      const nodes = getNodes();
+
+      // Find edges connected to this node
+      const incomingEdges = edges.filter((edge) => edge.target === id);
+
+      // Check connected source nodes for aspect ratio (prioritize image inputs)
+      for (const edge of incomingEdges) {
+        const sourceNode = nodes.find((n) => n.id === edge.source);
+        if (sourceNode) {
+          const sourceData = sourceNode.data as { aspectRatio?: string };
+          if (sourceData.aspectRatio) {
+            setSourceAspectRatio(sourceData.aspectRatio);
+            return;
+          }
+        }
+      }
+
+      setSourceAspectRatio(null);
+    };
+
+    // Check immediately
+    checkSourceAspectRatio();
+
+    // Set up an interval to poll for changes
+    const interval = setInterval(checkSourceAspectRatio, 500);
+
+    return () => clearInterval(interval);
+  }, [id, getNodes, getEdges]);
+
+  // User override takes precedence, then detected, then default
+  const detectedAspectRatio = data.aspectRatio || sourceAspectRatio || "1:1";
+
+  // Generate dynamic inputs array (prompt + reference images)
+  const inputs = useMemo(() => {
+    const imageInputs = Array.from({ length: inputCount }, (_, i) => ({
+      id: `image${i + 1}`,
+      label: `Ref ${i + 1}`,
+      color: "#F59E0B",
+    }));
+    return [
+      { id: "prompt", label: "Prompt", color: "#A78BFA" },
+      ...imageInputs,
+    ];
+  }, [inputCount]);
+
+  // Handler to add more inputs
+  const handleAddInput = useCallback(() => {
+    if (inputCount < MAX_INPUTS) {
+      setNodes((nds) =>
+        nds.map((node) =>
+          node.id === id
+            ? {
+                ...node,
+                data: {
+                  ...node.data,
+                  inputCount: inputCount + 1,
+                },
+              }
+            : node
+        )
+      );
+    }
+  }, [id, inputCount, setNodes]);
+
+  // Calculate container height based on detected aspect ratio
+  const containerHeight = useMemo(
+    () => getContainerHeight(detectedAspectRatio, NODE_WIDTH),
+    [detectedAspectRatio]
+  );
+
+  // Calculate minimum height needed to accommodate all input handles + add button
+  // Handles start at 65px and are spaced 36px apart
+  // Total inputs = 1 (prompt) + inputCount (images)
+  const minContentHeight = useMemo(() => {
+    const totalInputs = 1 + inputCount; // prompt + image inputs
+    // Last handle position + handle height + buffer - header height
+    // Add extra 36px for the + button if we can add more inputs
+    const addButtonSpace = canAddInput ? 36 : 0;
+    const handleSpaceNeeded =
+      65 + (totalInputs - 1) * 36 + 20 + addButtonSpace - 40;
+    return Math.max(0, handleSpaceNeeded);
+  }, [inputCount, canAddInput]);
+
+  const handleSave = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (data.imageUrl) {
+        await downloadMedia(data.imageUrl, "image");
       }
     },
-    [id, setNodes]
+    [data.imageUrl]
   );
 
   return (
     <BaseNode
       label={data.label || "Nano Banana Pro"}
       selected={selected}
-      inputs={[
-        { id: "prompt", label: "Prompt", color: "#A78BFA" },
-        { id: "image", label: "Image", color: "#F59E0B" },
-      ]}
+      inputs={inputs}
       outputs={[{ id: "image", label: "Image", color: "#F59E0B" }]}
+      isGenerating={data.isGenerating}
+      onAddInput={handleAddInput}
+      canAddInput={canAddInput}
     >
-      <div className="flex flex-col gap-3">
-        {/* Image Container */}
+      <div
+        className="flex flex-col gap-3"
+        style={{ minHeight: minContentHeight }}
+      >
+        {/* Output Container */}
         <div
-          className="nodrag relative w-full overflow-hidden rounded-lg"
+          className="nodrag relative w-full overflow-hidden rounded-lg transition-all duration-300"
           style={{
             backgroundColor: "rgb(31, 31, 35)",
             height: containerHeight,
           }}
         >
-          {data.imageUrl ? (
-            <img
-              src={data.imageUrl}
-              alt="Generated"
-              className="h-full w-full object-contain"
-            />
+          {data.isGenerating ? (
+            <div className="skeleton-loader flex h-full w-full items-center justify-center">
+              <div className="flex flex-col items-center gap-2">
+                <ImageIcon />
+                <span className="animate-pulse text-[10px] text-zinc-500">
+                  Generating...
+                </span>
+              </div>
+            </div>
+          ) : data.imageUrl ? (
+            <div
+              className="relative h-full w-full"
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+            >
+              <Image
+                src={data.imageUrl}
+                alt="Generated"
+                fill
+                unoptimized
+                className="object-cover"
+              />
+              {/* Overlay with save button */}
+              <div
+                className="absolute inset-0 flex items-center justify-center transition-all duration-300"
+                style={{
+                  backgroundColor: isHovered
+                    ? "rgba(0, 0, 0, 0.4)"
+                    : "transparent",
+                  opacity: isHovered ? 1 : 0,
+                  pointerEvents: isHovered ? "auto" : "none",
+                }}
+              >
+                <button
+                  onClick={handleSave}
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-110 hover:bg-white/30"
+                >
+                  <DownloadIcon />
+                </button>
+              </div>
+            </div>
           ) : (
             <div
               className="flex h-full w-full items-center justify-center"
@@ -125,48 +234,22 @@ const NanoBananaProNode = memo(function NanoBananaProNode({
                 backgroundColor: "#2b2b2f",
               }}
             >
-              <button
-                onClick={handleUploadClick}
-                className="nodrag inline-flex items-center justify-center gap-1.5 rounded-lg border border-cyan-400/20 bg-cyan-400/10 px-3 py-1.5 text-[10px] font-medium text-cyan-400 backdrop-blur-sm transition-all hover:bg-cyan-400/20"
-              >
-                <UploadIcon />
-                Upload
-              </button>
+              <span className="text-[10px] text-gray-500">No output yet</span>
             </div>
           )}
         </div>
 
-        {/* Hidden file input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileSelect}
-          className="hidden"
-        />
-
-        {/* Action buttons */}
-        <div className="flex gap-2">
-          <button
-            onClick={handleUploadClick}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-[8px] text-gray-300 transition-colors hover:border-zinc-600 hover:text-white"
-          >
-            <UploadIconSmall />
-            Upload
-          </button>
-          <button className="flex flex-1 items-center justify-center gap-1.5 rounded border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-[8px] text-gray-300 transition-colors hover:border-zinc-600 hover:text-white">
-            <LibraryIcon />
-            Library
-          </button>
-        </div>
-
-        {/* Model badge */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <div className="h-2 w-2 rounded-full bg-cyan-500" />
-            <span className="text-[8px] text-gray-400">Fast Generation</span>
-          </div>
-          <span className="text-[8px] text-gray-500">$0.02/image</span>
+        {/* Settings badges */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[8px] text-gray-400">
+            {detectedAspectRatio}
+          </span>
+          <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[8px] text-gray-400">
+            {data.resolution || "1K"}
+          </span>
+          <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[8px] text-gray-400 uppercase">
+            {data.outputFormat || "png"}
+          </span>
         </div>
       </div>
     </BaseNode>

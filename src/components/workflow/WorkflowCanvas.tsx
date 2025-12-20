@@ -18,18 +18,27 @@ import {
   OutputNode,
   PreviewNode,
   VideoNode,
+  FileNode,
   Kling26Node,
   Kling25TurboNode,
   Wan26Node,
   NanoBananaProNode,
-  VideoEditorNode,
+  VideoConcatNode,
+  VideoSubtitlesNode,
+  VideoTrimNode,
+  VideoTransitionNode,
 } from "./nodes";
 import { GradientEdge } from "./edges";
 import WorkflowBottomToolbar, {
   type SavedWorkflow,
 } from "./WorkflowBottomToolbar";
 import NodeActionMenu from "./NodeActionMenu";
-import { useWorkflowContext, COMPATIBLE_HANDLES, HANDLE_COLORS } from "./WorkflowContext";
+import RunAllButton from "./RunAllButton";
+import {
+  useWorkflowContext,
+  COMPATIBLE_HANDLES,
+  HANDLE_COLORS,
+} from "./WorkflowContext";
 import type { WorkflowNode, WorkflowEdge } from "./types";
 import type { NodeChange, EdgeChange, Connection } from "@xyflow/react";
 
@@ -41,11 +50,15 @@ const nodeTypes: NodeTypes = {
   output: OutputNode,
   preview: PreviewNode,
   video: VideoNode,
+  file: FileNode,
   kling26: Kling26Node,
   kling25Turbo: Kling25TurboNode,
   wan26: Wan26Node,
   nanoBananaPro: NanoBananaProNode,
-  videoEditor: VideoEditorNode,
+  videoConcat: VideoConcatNode,
+  videoSubtitles: VideoSubtitlesNode,
+  videoTrim: VideoTrimNode,
+  videoTransition: VideoTransitionNode,
 };
 
 // Register custom edge types - defined outside component to prevent recreation
@@ -72,6 +85,9 @@ interface WorkflowCanvasProps {
   onPaneClick?: () => void;
   onDeleteNode?: (nodeId: string) => void;
   onRunNode?: (nodeId: string) => void;
+  onRunAll?: () => void;
+  isExecutingAll?: boolean;
+  executingCount?: number;
   currentWorkflowId?: string | null;
   onLoadWorkflow?: (workflow: SavedWorkflow) => void;
   onNewWorkflow?: () => void;
@@ -87,16 +103,22 @@ function WorkflowCanvasInner({
   onPaneClick,
   onDeleteNode,
   onRunNode,
+  onRunAll,
+  isExecutingAll = false,
+  executingCount = 0,
   currentWorkflowId,
   onLoadWorkflow,
   onNewWorkflow,
 }: WorkflowCanvasProps) {
-  const { mode, setConnectingHandleType, connectingHandleType } = useWorkflowContext();
+  const { mode, setConnectingHandleType, connectingHandleType } =
+    useWorkflowContext();
 
   // Dynamic connection line style based on source handle type
   const connectionLineStyle = useMemo(
     () => ({
-      stroke: connectingHandleType ? (HANDLE_COLORS[connectingHandleType] || "#6EDDB3") : "#6EDDB3",
+      stroke: connectingHandleType
+        ? HANDLE_COLORS[connectingHandleType] || "#6EDDB3"
+        : "#6EDDB3",
       strokeWidth: 3,
     }),
     [connectingHandleType]
@@ -169,7 +191,39 @@ function WorkflowCanvasInner({
         }
         /* Smooth transitions */
         .react-flow__edge path {
-          transition: stroke 0.15s ease;
+          transition:
+            stroke 0.15s ease,
+            opacity 0.3s ease;
+        }
+        /* Edge flow animation for generating state */
+        @keyframes edgeFlowAnimation {
+          from {
+            stroke-dashoffset: 40;
+          }
+          to {
+            stroke-dashoffset: 0;
+          }
+        }
+        @keyframes edgePulseAnimation {
+          0%,
+          100% {
+            opacity: 0.6;
+          }
+          50% {
+            opacity: 1;
+          }
+        }
+        /* Node generating border animations */
+        @keyframes borderShimmer {
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
         }
       `}</style>
       <ReactFlow
@@ -217,6 +271,13 @@ function WorkflowCanvasInner({
         />
         <NodeActionMenu onRun={onRunNode} onDelete={onDeleteNode} />
       </ReactFlow>
+      {onRunAll && (
+        <RunAllButton
+          onRunAll={onRunAll}
+          isExecuting={isExecutingAll}
+          executingCount={executingCount}
+        />
+      )}
     </div>
   );
 }

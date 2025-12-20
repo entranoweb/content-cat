@@ -12,16 +12,71 @@ export const HANDLE_COLORS: Record<string, string> = {
   result: "#6EDDB3", // Green - final result (output node only)
   media: "#F59E0B", // Orange - generic media
   audio: "#60A5FA", // Blue - audio data
+  firstFrame: "#F59E0B", // Orange - first frame image
+  lastFrame: "#F59E0B", // Orange - last frame image
 };
 
 // Define which handle types can connect to each other
 export const COMPATIBLE_HANDLES: Record<string, string[]> = {
-  prompt: ["prompt"],
-  video: ["video", "media", "result"],
-  image: ["image", "media"],
+  prompt: ["prompt", "transcript"],
+  video: [
+    "video",
+    "video1",
+    "video2",
+    "video3",
+    "video4",
+    "video5",
+    "video6",
+    "video7",
+    "video8",
+    "video9",
+    "video10",
+    "videoIn",
+    "videoOut",
+    "media",
+    "result",
+  ],
+  image: [
+    "image",
+    "image1",
+    "image2",
+    "image3",
+    "image4",
+    "image5",
+    "image6",
+    "image7",
+    "image8",
+    "image9",
+    "image10",
+    "image11",
+    "image12",
+    "image13",
+    "image14",
+    "firstFrame",
+    "lastFrame",
+    "media",
+  ],
   result: ["result", "media"],
   media: ["media", "video", "image", "result"],
   audio: ["audio"],
+  transcript: ["transcript", "prompt"],
+  // Concat node specific inputs (video1-video10)
+  video1: ["video1"],
+  video2: ["video2"],
+  video3: ["video3"],
+  video4: ["video4"],
+  video5: ["video5"],
+  video6: ["video6"],
+  video7: ["video7"],
+  video8: ["video8"],
+  video9: ["video9"],
+  video10: ["video10"],
+  // Transition node specific inputs
+  videoIn: ["videoIn"],
+  videoOut: ["videoOut"],
+  // First/Last frame inputs for Kling 2.5 Turbo
+  firstFrame: ["firstFrame"],
+  lastFrame: ["lastFrame"],
 };
 
 interface WorkflowContextValue {

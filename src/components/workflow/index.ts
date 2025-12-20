@@ -1,6 +1,5 @@
 // Main components
 export { default as WorkflowCanvas } from "./WorkflowCanvas";
-export { default as WorkflowSidebar } from "./WorkflowSidebar";
 export { default as WorkflowToolbar } from "./WorkflowToolbar";
 export { default as WorkflowPropertiesPanel } from "./WorkflowPropertiesPanel";
 export { default as WorkflowBottomToolbar } from "./WorkflowBottomToolbar";

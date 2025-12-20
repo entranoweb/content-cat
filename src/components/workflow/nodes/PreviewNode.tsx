@@ -1,6 +1,7 @@
 "use client";
 
 import type { NodeProps, Node } from "@xyflow/react";
+import Image from "next/image";
 import BaseNode from "./BaseNode";
 import type { PreviewNodeData } from "../types";
 
@@ -22,10 +23,12 @@ export default function PreviewNode({
           style={{ backgroundColor: "rgb(31, 31, 35)" }}
         >
           {data.previewUrl ? (
-            <img
+            <Image
               src={data.previewUrl}
               alt="Preview"
-              className="h-full w-full rounded-lg object-cover"
+              fill
+              unoptimized
+              className="rounded-lg object-cover"
             />
           ) : (
             <div className="flex flex-col items-center gap-2 text-gray-500">

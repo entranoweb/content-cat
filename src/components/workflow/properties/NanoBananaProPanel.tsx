@@ -13,14 +13,25 @@ import {
   CheckboxField,
 } from "./PropertyField";
 
+interface ExecutionState {
+  canExecute: boolean;
+  reason?: string;
+}
+
 interface NanoBananaProPanelProps {
   nodeData: Partial<NanoBananaProNodeData>;
   onUpdate: (key: string, value: unknown) => void;
+  onExecute?: () => void;
+  isExecuting?: boolean;
+  executionState?: ExecutionState;
 }
 
 export const NanoBananaProPanel = memo(function NanoBananaProPanel({
   nodeData,
   onUpdate,
+  onExecute,
+  isExecuting = false,
+  executionState,
 }: NanoBananaProPanelProps) {
   const mode = nodeData.mode || "text-to-image";
   const aspectRatio = nodeData.aspectRatio || "1:1";
@@ -29,6 +40,9 @@ export const NanoBananaProPanel = memo(function NanoBananaProPanel({
   const numImages = nodeData.numImages || 1;
   const enableWebSearch = nodeData.enableWebSearch ?? false;
   const enableSafetyChecker = nodeData.enableSafetyChecker ?? true;
+
+  const canExecute = executionState?.canExecute ?? true;
+  const disabledReason = executionState?.reason;
 
   return (
     <PanelContainer>
@@ -91,7 +105,13 @@ export const NanoBananaProPanel = memo(function NanoBananaProPanel({
         />
       </PanelBody>
 
-      <RunButton label="Generate Image" />
+      <RunButton
+        label="Generate Image"
+        onClick={onExecute}
+        isLoading={isExecuting}
+        disabled={!canExecute}
+        disabledReason={disabledReason}
+      />
     </PanelContainer>
   );
 });
