@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import Image from "next/image";
 import type { GeneratedVideo } from "./types";
 import { useVideoPlayback } from "@/hooks/useVideoPlayback";
@@ -24,7 +24,7 @@ interface VideoResultCardProps {
   onAttachImages?: (imageUrl?: string) => void;
 }
 
-export default function VideoResultCard({
+const VideoResultCard = memo(function VideoResultCard({
   video,
   onRerun,
   onCopy,
@@ -527,4 +527,6 @@ export default function VideoResultCard({
       </li>
     </div>
   );
-}
+});
+
+export default VideoResultCard;

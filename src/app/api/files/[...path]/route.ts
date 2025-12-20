@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFile } from "fs/promises";
-import { existsSync } from "fs";
+import { existsSync, lstatSync } from "fs";
 import path from "path";
+import { requireAuth } from "@/lib/auth-helpers";
+import { logger } from "@/lib/logger";
 
 // Base upload directory
 const UPLOAD_DIR = path.join(process.cwd(), "uploads");
@@ -22,6 +24,10 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
 ) {
+  // Require authentication to access files
+  const { error: authError } = await requireAuth(request);
+  if (authError) return authError;
+
   try {
     const { path: pathSegments } = await params;
     const relativePath = pathSegments.join("/");
@@ -31,6 +37,16 @@ export async function GET(
     const resolvedPath = path.resolve(filePath);
     if (!resolvedPath.startsWith(UPLOAD_DIR)) {
       return NextResponse.json({ error: "Invalid path" }, { status: 400 });
+    }
+
+    // Security: Check for symlink attacks
+    try {
+      const stat = lstatSync(resolvedPath);
+      if (stat.isSymbolicLink()) {
+        return NextResponse.json({ error: "Invalid path" }, { status: 400 });
+      }
+    } catch {
+      // File doesn't exist, will be caught below
     }
 
     // Check if file exists
@@ -52,8 +68,10 @@ export async function GET(
         "Cache-Control": "public, max-age=31536000, immutable",
       },
     });
-  } catch (error) {
-    console.error("File serve error:", error);
+  } catch (error: unknown) {
+    logger.error("File serve error:", {
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
     return NextResponse.json(
       { error: "Failed to serve file" },
       { status: 500 }

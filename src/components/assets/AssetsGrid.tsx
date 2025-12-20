@@ -730,7 +730,6 @@ function GeneratedAssetCard({
           alt={asset.prompt}
           fill
           loading="lazy"
-          unoptimized
           className={`object-cover -z-10 transition group-hover:brightness-75 ${
             isLoaded ? "opacity-100" : "opacity-0"
           }`}

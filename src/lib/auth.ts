@@ -5,29 +5,41 @@ import crypto from "crypto";
 const SESSION_COOKIE_NAME = "session_token";
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
+// PBKDF2 iterations - OWASP 2023 recommends 310,000+ for SHA-512
+const PBKDF2_ITERATIONS = 310000;
+
 /**
  * Hash a password using PBKDF2
  */
 export async function hashPassword(password: string): Promise<string> {
   const salt = crypto.randomBytes(16).toString("hex");
   const hash = crypto
-    .pbkdf2Sync(password, salt, 100000, 64, "sha512")
+    .pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, 64, "sha512")
     .toString("hex");
   return `${salt}:${hash}`;
 }
 
 /**
  * Verify a password against a hash
+ * Supports both legacy (100k) and new (310k) iteration counts for backwards compatibility
  */
 export async function verifyPassword(
   password: string,
   storedHash: string
 ): Promise<boolean> {
   const [salt, hash] = storedHash.split(":");
+
+  // Try with current iteration count first
   const verifyHash = crypto
+    .pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, 64, "sha512")
+    .toString("hex");
+  if (hash === verifyHash) return true;
+
+  // Fallback to legacy iteration count for existing passwords
+  const legacyHash = crypto
     .pbkdf2Sync(password, salt, 100000, 64, "sha512")
     .toString("hex");
-  return hash === verifyHash;
+  return hash === legacyHash;
 }
 
 /**

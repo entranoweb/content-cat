@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import Image from "next/image";
 import type { GeneratedImage } from "./types";
 
@@ -14,7 +15,7 @@ interface ImageCardProps {
   onEdit: () => void;
 }
 
-export default function ImageCard({
+const ImageCard = memo(function ImageCard({
   image,
   isSelected,
   isPriority = false,
@@ -35,7 +36,6 @@ export default function ImageCard({
         fill
         sizes="(max-width: 768px) 50vw, 25vw"
         className="size-full object-cover"
-        unoptimized
         priority={isPriority}
         loading={isPriority ? "eager" : "lazy"}
       />
@@ -168,4 +168,6 @@ export default function ImageCard({
       </div>
     </div>
   );
-}
+});
+
+export default ImageCard;

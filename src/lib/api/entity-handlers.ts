@@ -195,11 +195,11 @@ export function createUpdateHandler(entityType: EntityType) {
         );
       }
 
-      // Fetch the updated entity to return
+      // Fetch the updated entity to return (with ownership check)
       const entity =
         entityType === "character"
-          ? await prisma.character.findUnique({ where: { id } })
-          : await prisma.product.findUnique({ where: { id } });
+          ? await prisma.character.findFirst({ where: { id, userId: user!.id } })
+          : await prisma.product.findFirst({ where: { id, userId: user!.id } });
 
       return NextResponse.json(entity);
     } catch (error) {

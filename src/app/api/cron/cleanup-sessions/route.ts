@@ -16,12 +16,20 @@ import { logger } from "@/lib/logger";
  */
 export async function GET(request: Request) {
   // Verify the request is from a trusted source
-  // In production, use a secret token or IP whitelist
   const authHeader = request.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
 
-  // If CRON_SECRET is set, verify it matches
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  // CRON_SECRET is always required - fail closed for security
+  if (!cronSecret) {
+    logger.error("CRON_SECRET environment variable is not set");
+    return NextResponse.json(
+      { error: "Server configuration error" },
+      { status: 500 }
+    );
+  }
+
+  // Verify the secret matches
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

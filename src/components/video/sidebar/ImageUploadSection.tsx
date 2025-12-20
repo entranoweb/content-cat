@@ -69,7 +69,7 @@ export default function ImageUploadSection({
                 src={startImageUrl}
                 alt="Start frame"
                 fill
-                unoptimized
+                sizes="120px"
                 className={`object-contain transition-opacity duration-150 ${isSwapping ? "opacity-0" : "opacity-100"}`}
               />
             ) : (
@@ -123,7 +123,7 @@ export default function ImageUploadSection({
                 src={endImageUrl}
                 alt="End frame"
                 fill
-                unoptimized
+                sizes="120px"
                 className={`object-contain transition-opacity duration-150 ${isSwapping ? "opacity-0" : "opacity-100"}`}
               />
             ) : (
@@ -180,7 +180,7 @@ export default function ImageUploadSection({
             src={singleImageUrl}
             alt="Uploaded image"
             fill
-            unoptimized
+            sizes="200px"
             className="object-contain"
           />
         ) : (

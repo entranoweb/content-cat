@@ -227,7 +227,7 @@ export default function ImageDetailPanel({
               alt="thumbnail"
               fill
               className="object-cover"
-              unoptimized
+              sizes="40px"
             />
           </div>
           <div>

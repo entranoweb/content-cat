@@ -7,11 +7,27 @@ import {
   maskApiKey,
 } from "@/lib/services/apiKeyService";
 import { logger } from "@/lib/logger";
+import {
+  checkRateLimit,
+  getClientIdentifier,
+  createRateLimitHeaders,
+  RATE_LIMITS,
+} from "@/lib/rate-limit";
 
 // GET /api/api-keys - List all API keys (masked)
 export async function GET(request: Request) {
   const { user, error } = await requireAuth(request);
   if (error) return error;
+
+  // Rate limit sensitive operations
+  const clientId = getClientIdentifier(request);
+  const rateLimitResult = await checkRateLimit(clientId, RATE_LIMITS.sensitive);
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429, headers: createRateLimitHeaders(rateLimitResult) }
+    );
+  }
 
   try {
     const apiKeys = await prisma.apiKey.findMany({
@@ -41,6 +57,16 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const { user, error } = await requireAuth(request);
   if (error) return error;
+
+  // Rate limit sensitive operations
+  const clientId = getClientIdentifier(request);
+  const rateLimitResult = await checkRateLimit(clientId, RATE_LIMITS.sensitive);
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429, headers: createRateLimitHeaders(rateLimitResult) }
+    );
+  }
 
   try {
     const body = await request.json();
@@ -91,6 +117,16 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
   const { user, error } = await requireAuth(request);
   if (error) return error;
+
+  // Rate limit sensitive operations
+  const clientId = getClientIdentifier(request);
+  const rateLimitResult = await checkRateLimit(clientId, RATE_LIMITS.sensitive);
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429, headers: createRateLimitHeaders(rateLimitResult) }
+    );
+  }
 
   try {
     const { searchParams } = new URL(request.url);

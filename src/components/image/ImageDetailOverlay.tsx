@@ -97,7 +97,6 @@ export default function ImageDetailOverlay({
             priority
             loading="eager"
             className="pointer-events-none [border-radius:12px] object-contain"
-            unoptimized
           />
         </div>
       </div>

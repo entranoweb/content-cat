@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import { fal, configureFalClient } from "@/lib/fal";
 import { logger } from "@/lib/logger";
+import { requireAuth } from "@/lib/auth-helpers";
 
 // POST /api/api-keys/validate - Validate an API key
 export async function POST(request: Request) {
+  // Require authentication to validate keys
+  const { error: authError } = await requireAuth(request);
+  if (authError) return authError;
+
   try {
     const body = await request.json();
     const { key, service } = body;

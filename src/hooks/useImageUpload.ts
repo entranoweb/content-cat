@@ -90,22 +90,32 @@ export function useImageUpload(options: UseImageUploadOptions = {}) {
     [onStartImageChange, onEndImageChange, onSingleImageChange, onModeChange]
   );
 
-  // Swap start and end images
+  // Swap start and end images - captures current values synchronously to avoid stale closures
   const swapImages = useCallback(() => {
+    // Capture current values immediately (before any async operations)
+    const currentStart = startImageUrl;
+    const currentEnd = endImageUrl;
+
     setIsSwapping(true);
-    // Fade out, swap, then fade in
+
+    // Perform swap after fade-out animation
     setTimeout(() => {
-      const tempStart = startImageUrl;
-      const tempEnd = endImageUrl;
-      setStartImageUrl(tempEnd);
-      setEndImageUrl(tempStart);
-      onStartImageChange?.(tempEnd || undefined);
-      onEndImageChange?.(tempStart || undefined);
-      if (tempEnd) {
+      // Swap the values
+      setStartImageUrl(currentEnd);
+      setEndImageUrl(currentStart);
+
+      // Notify parent of changes
+      onStartImageChange?.(currentEnd || undefined);
+      onEndImageChange?.(currentStart || undefined);
+
+      // Update mode based on new start value
+      if (currentEnd) {
         onModeChange?.("image-to-video");
       } else {
         onModeChange?.("text-to-video");
       }
+
+      // Fade back in
       setTimeout(() => {
         setIsSwapping(false);
       }, 50);

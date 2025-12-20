@@ -35,9 +35,11 @@ function WorkflowPageContent() {
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showSaveAnimation, setShowSaveAnimation] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialMount = useRef(true);
   const hasLoadedFromUrl = useRef(false);
+  const workflowNameInputRef = useRef<HTMLInputElement>(null);
   const { screenToFlowPosition } = useReactFlow();
   const {
     nodes,
@@ -155,7 +157,7 @@ function WorkflowPageContent() {
   }, [copySelectedNodes, pasteNodes, selectAllNodes]);
 
   // Auto-save workflow with debounce
-  const saveWorkflow = useCallback(async () => {
+  const saveWorkflow = useCallback(async (showFeedback = false) => {
     if (isSaving) return;
     setIsSaving(true);
 
@@ -168,6 +170,10 @@ function WorkflowPageContent() {
         });
         if (!result.success) {
           toast.error("Failed to save workflow");
+        } else if (showFeedback) {
+          toast.success("Workflow saved");
+          setShowSaveAnimation(true);
+          setTimeout(() => setShowSaveAnimation(false), 600);
         }
       } else {
         const result = await createWorkflow({
@@ -177,6 +183,11 @@ function WorkflowPageContent() {
         });
         if (result.success) {
           setWorkflowId(result.data.id);
+          if (showFeedback) {
+            toast.success("Workflow created");
+            setShowSaveAnimation(true);
+            setTimeout(() => setShowSaveAnimation(false), 600);
+          }
         } else {
           toast.error("Failed to create workflow");
         }
@@ -188,6 +199,26 @@ function WorkflowPageContent() {
       setIsSaving(false);
     }
   }, [workflowId, workflowName, nodes, edges, isSaving]);
+
+  // Handle workflow name save on Enter key
+  const handleWorkflowNameKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        // Cancel any pending auto-save
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+          saveTimeoutRef.current = null;
+        }
+        // Blur the input
+        workflowNameInputRef.current?.blur();
+        // Save with feedback
+        setHasUnsavedChanges(false);
+        saveWorkflow(true);
+      }
+    },
+    [saveWorkflow]
+  );
 
   // Track changes (skip initial mount)
   useEffect(() => {
@@ -362,10 +393,16 @@ function WorkflowPageContent() {
             {/* Workflow Name Input */}
             <div className="absolute top-4 left-4 z-10">
               <input
+                ref={workflowNameInputRef}
                 type="text"
                 value={workflowName}
                 onChange={(e) => setWorkflowName(e.target.value)}
-                className="w-48 rounded-lg border border-white/10 bg-zinc-900/90 px-3 py-2 text-sm text-white placeholder-gray-500 backdrop-blur-xl transition-colors outline-none focus:border-white/20"
+                onKeyDown={handleWorkflowNameKeyDown}
+                className={`w-48 rounded-lg border bg-zinc-900/90 px-3 py-2 text-sm text-white placeholder-gray-500 backdrop-blur-xl transition-all duration-300 outline-none focus:border-white/20 ${
+                  showSaveAnimation
+                    ? "border-emerald-500/70 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
+                    : "border-white/10"
+                }`}
                 placeholder="Workflow name..."
               />
             </div>
@@ -386,6 +423,22 @@ function WorkflowPageContent() {
               onLoadWorkflow={handleLoadWorkflow}
               onNewWorkflow={handleNewWorkflow}
             />
+
+            {/* Empty State */}
+            {!isLoading && nodes.length === 0 && (
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="mb-4 text-6xl opacity-20">🎬</div>
+                  <h2 className="mb-2 text-xl font-medium text-gray-400">
+                    Start Building Your Workflow
+                  </h2>
+                  <p className="max-w-sm text-sm text-gray-500">
+                    Drag nodes from the bottom toolbar onto the canvas to create
+                    your video generation pipeline
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Properties Panel - only show for configurable nodes */}

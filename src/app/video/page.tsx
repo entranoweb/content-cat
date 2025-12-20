@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Header from "@/components/Header";
 import PresetSelector from "@/components/PresetSelector";
+import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 import {
   VideoSidebar,
   VideoHistoryView,
@@ -15,6 +16,7 @@ import type { VideoModelId } from "@/lib/fal";
 
 export default function VideoPage() {
   const [showPresetSelector, setShowPresetSelector] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Video history management
   const {
@@ -86,6 +88,18 @@ export default function VideoPage() {
   const handleAttachImages = (imageUrl?: string) => {
     if (imageUrl) {
       attachImageFromResult(imageUrl, modelConfig.supportsStartEndFrames);
+    }
+  };
+
+  // Video delete with confirmation
+  const handleDeleteWithConfirm = (id: string) => {
+    setDeleteConfirmId(id);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteConfirmId) {
+      handleDeleteVideo(deleteConfirmId);
+      setDeleteConfirmId(null);
     }
   };
 
@@ -169,7 +183,7 @@ export default function VideoPage() {
                   isLoading={isLoadingVideos}
                   pendingCount={pendingCount}
                   onRerun={handleRerunVideo}
-                  onDelete={handleDeleteVideo}
+                  onDelete={handleDeleteWithConfirm}
                   onDownload={handleDownloadVideo}
                   onCopy={handleCopyPrompt}
                   onAttachImages={handleAttachImages}
@@ -181,6 +195,15 @@ export default function VideoPage() {
           )}
         </main>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteConfirmId !== null}
+        title="Delete Video"
+        message="Are you sure you want to delete this video? This action cannot be undone."
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteConfirmId(null)}
+      />
     </div>
   );
 }

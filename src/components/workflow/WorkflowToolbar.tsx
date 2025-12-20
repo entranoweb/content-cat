@@ -252,6 +252,7 @@ export default function WorkflowToolbar() {
       <div className="flex flex-col items-center py-4">
         <Link
           href="/"
+          aria-label="Go to homepage"
           className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 to-cyan-600 transition-transform hover:scale-105"
         >
           <LogoIcon />
@@ -262,26 +263,24 @@ export default function WorkflowToolbar() {
       <div className="mx-2 border-t border-zinc-800" />
 
       {/* Navigation Icons */}
-      <nav className="flex flex-1 flex-col items-center gap-2 py-3">
+      <nav aria-label="Main navigation" className="flex flex-1 flex-col items-center gap-2 py-3">
         {toolbarItems.map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link
               key={item.id}
               href={item.href}
+              aria-label={item.label}
+              aria-current={isActive ? "page" : undefined}
               className={`group relative flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${
                 isActive
-                  ? "bg-cyan-400/15 text-cyan-400"
+                  ? "bg-white/15 text-white"
                   : "text-gray-500 hover:bg-zinc-800 hover:text-white"
               }`}
             >
               {item.icon}
-              {/* Active indicator bar */}
-              {isActive && (
-                <span className="absolute left-0 h-6 w-0.5 rounded-r-full bg-cyan-400" />
-              )}
               {/* Tooltip */}
-              <span className="pointer-events-none absolute left-14 z-50 rounded-lg bg-zinc-800 px-3 py-2 text-sm whitespace-nowrap text-white opacity-0 shadow-xl transition-opacity group-hover:opacity-100">
+              <span aria-hidden="true" className="pointer-events-none absolute left-14 z-50 rounded-lg bg-zinc-800 px-3 py-2 text-sm whitespace-nowrap text-white opacity-0 shadow-xl transition-opacity group-hover:opacity-100">
                 {item.label}
               </span>
             </Link>
@@ -298,10 +297,11 @@ export default function WorkflowToolbar() {
           href="https://fal.ai/dashboard/billing"
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Top up credits (opens in new tab)"
           className="group relative flex h-10 w-10 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-zinc-800 hover:text-cyan-400"
         >
           <CreditsIcon />
-          <span className="pointer-events-none absolute left-14 z-50 rounded-lg bg-zinc-800 px-3 py-2 text-sm whitespace-nowrap text-white opacity-0 shadow-xl transition-opacity group-hover:opacity-100">
+          <span aria-hidden="true" className="pointer-events-none absolute left-14 z-50 rounded-lg bg-zinc-800 px-3 py-2 text-sm whitespace-nowrap text-white opacity-0 shadow-xl transition-opacity group-hover:opacity-100">
             Top Up Credits
           </span>
         </a>

@@ -25,18 +25,28 @@ function getEncryptionKey(): Buffer {
     return crypto.scryptSync(envKey, "content-cat-salt", 32);
   }
 
-  // Fallback to deriving from a combination of available secrets
-  // This is NOT recommended for production - always set ENCRYPTION_KEY
-  const fallbackSecret =
-    process.env.SESSION_SECRET ||
-    process.env.DATABASE_URL ||
-    "default-insecure-key-change-me";
+  // In production, ENCRYPTION_KEY is required
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "ENCRYPTION_KEY environment variable is required in production. " +
+        "Generate a secure 64-character hex key using: openssl rand -hex 32"
+    );
+  }
 
-  console.warn(
-    "WARNING: Using derived encryption key. Set ENCRYPTION_KEY in production."
+  // Development-only fallback using SESSION_SECRET
+  const sessionSecret = process.env.SESSION_SECRET;
+  if (sessionSecret) {
+    console.warn(
+      "WARNING: Using SESSION_SECRET for encryption in development. " +
+        "Set ENCRYPTION_KEY for production."
+    );
+    return crypto.scryptSync(sessionSecret, "content-cat-dev-salt", 32);
+  }
+
+  throw new Error(
+    "ENCRYPTION_KEY or SESSION_SECRET environment variable is required. " +
+      "Set one of these in your .env file."
   );
-
-  return crypto.scryptSync(fallbackSecret, "content-cat-derived", 32);
 }
 
 /**

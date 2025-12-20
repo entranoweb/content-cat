@@ -13,6 +13,7 @@ import {
   ImageDetailOverlay,
   type GeneratedImage,
 } from "@/components/image";
+import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 
 export default function ImagePage() {
   return (
@@ -54,6 +55,7 @@ function ImagePageContent() {
     null
   );
   const [editData, setEditData] = useState<{ imageUrl: string } | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
@@ -137,7 +139,11 @@ function ImagePageContent() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirmId) return;
+    const id = deleteConfirmId;
+    setDeleteConfirmId(null);
+
     // Optimistically update UI
     setGeneratedImages((prev) => prev.filter((img) => img.id !== id));
     setSelectedImages((prev) => {
@@ -154,11 +160,17 @@ function ImagePageContent() {
       if (!response.ok) {
         toast.error("Failed to delete image");
         fetchImages(); // Restore state
+      } else {
+        toast.success("Image deleted");
       }
     } catch {
       toast.error("Failed to delete image");
       fetchImages(); // Restore state
     }
+  };
+
+  const handleDelete = (id: string) => {
+    setDeleteConfirmId(id);
   };
 
   const handleGenerate = (data: {
@@ -344,6 +356,15 @@ function ImagePageContent() {
           }}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteConfirmId !== null}
+        title="Delete Image"
+        message="Are you sure you want to delete this image? This action cannot be undone."
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteConfirmId(null)}
+      />
     </div>
   );
 }

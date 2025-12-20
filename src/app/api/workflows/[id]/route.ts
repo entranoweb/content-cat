@@ -72,8 +72,10 @@ export async function PATCH(
       );
     }
 
-    // Fetch the updated workflow to return
-    const workflow = await prisma.workflow.findUnique({ where: { id } });
+    // Fetch the updated workflow to return (with ownership check)
+    const workflow = await prisma.workflow.findFirst({
+      where: { id, userId: user!.id },
+    });
 
     return NextResponse.json(workflow);
   } catch (err) {
