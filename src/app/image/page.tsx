@@ -14,13 +14,16 @@ import {
   type GeneratedImage,
 } from "@/components/image";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useImages } from "@/hooks";
 
 export default function ImagePage() {
   return (
-    <Suspense fallback={<ImagePageSkeleton />}>
-      <ImagePageContent />
-    </Suspense>
+    <ErrorBoundary>
+      <Suspense fallback={<ImagePageSkeleton />}>
+        <ImagePageContent />
+      </Suspense>
+    </ErrorBoundary>
   );
 }
 

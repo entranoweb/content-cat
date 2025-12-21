@@ -84,77 +84,67 @@ const Kling26Node = memo(function Kling26Node({
   const { getNodes, getEdges, setNodes } = useReactFlow();
   const updateData = useNodeUpdate(id);
 
-  // Detect aspect ratio from connected source nodes and sync to node data
-  useEffect(() => {
-    const checkSourceAspectRatio = () => {
-      const edges = getEdges();
-      const nodes = getNodes();
+  // Detect aspect ratio from connected source nodes
+  // Returns the detected ratio or null
+  const detectSourceAspectRatio = useCallback((): string | null => {
+    const edges = getEdges();
+    const nodes = getNodes();
 
-      // Find edges connected to this node
-      const incomingEdges = edges.filter((edge) => edge.target === id);
+    // Find edges connected to this node
+    const incomingEdges = edges.filter((edge) => edge.target === id);
 
-      // Helper to sync detected ratio to node data (normalized to supported values)
-      const syncAspectRatio = (sourceRatio: string) => {
-        const normalizedRatio = normalizeToStandardRatio(
-          sourceRatio,
-          SUPPORTED_RATIOS
-        );
-        setSourceAspectRatio(normalizedRatio);
-        if (data.aspectRatio !== normalizedRatio) {
-          setNodes((nds) =>
-            nds.map((node) =>
-              node.id === id
-                ? {
-                    ...node,
-                    data: { ...node.data, aspectRatio: normalizedRatio },
-                  }
-                : node
-            )
-          );
-        }
-      };
-
-      // Prioritize image inputs for aspect ratio detection
-      const imageHandles = ["image", "firstFrame", "lastFrame"];
-      for (const handleId of imageHandles) {
-        const imageEdge = incomingEdges.find(
-          (e) => e.targetHandle === handleId
-        );
-        if (imageEdge) {
-          const sourceNode = nodes.find((n) => n.id === imageEdge.source);
-          if (sourceNode) {
-            const sourceData = sourceNode.data as { aspectRatio?: string };
-            if (sourceData.aspectRatio) {
-              syncAspectRatio(sourceData.aspectRatio);
-              return;
-            }
-          }
-        }
-      }
-
-      // Fallback: check any connected source for aspect ratio
-      for (const edge of incomingEdges) {
-        const sourceNode = nodes.find((n) => n.id === edge.source);
+    // Prioritize image inputs for aspect ratio detection
+    const imageHandles = ["image", "firstFrame", "lastFrame"];
+    for (const handleId of imageHandles) {
+      const imageEdge = incomingEdges.find(
+        (e) => e.targetHandle === handleId
+      );
+      if (imageEdge) {
+        const sourceNode = nodes.find((n) => n.id === imageEdge.source);
         if (sourceNode) {
           const sourceData = sourceNode.data as { aspectRatio?: string };
           if (sourceData.aspectRatio) {
-            syncAspectRatio(sourceData.aspectRatio);
-            return;
+            return normalizeToStandardRatio(sourceData.aspectRatio, SUPPORTED_RATIOS);
           }
         }
       }
+    }
 
-      setSourceAspectRatio(null);
-    };
+    // Fallback: check any connected source for aspect ratio
+    for (const edge of incomingEdges) {
+      const sourceNode = nodes.find((n) => n.id === edge.source);
+      if (sourceNode) {
+        const sourceData = sourceNode.data as { aspectRatio?: string };
+        if (sourceData.aspectRatio) {
+          return normalizeToStandardRatio(sourceData.aspectRatio, SUPPORTED_RATIOS);
+        }
+      }
+    }
 
-    // Check immediately
-    checkSourceAspectRatio();
+    return null;
+  }, [id, getNodes, getEdges]);
 
-    // Set up an interval to poll for changes
-    const interval = setInterval(checkSourceAspectRatio, 500);
+  // Sync detected aspect ratio with React Flow state
+  // This is a valid use case - responding to external state changes from React Flow
+  useEffect(() => {
+    const detectedRatio = detectSourceAspectRatio();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Syncing with external React Flow state
+    setSourceAspectRatio(detectedRatio);
 
-    return () => clearInterval(interval);
-  }, [id, getNodes, getEdges, setNodes, data.aspectRatio]);
+    // Sync to node data if different
+    if (detectedRatio && data.aspectRatio !== detectedRatio) {
+      setNodes((nds) =>
+        nds.map((node) =>
+          node.id === id
+            ? {
+                ...node,
+                data: { ...node.data, aspectRatio: detectedRatio },
+              }
+            : node
+        )
+      );
+    }
+  }, [id, detectSourceAspectRatio, data.aspectRatio, setNodes]);
 
   // User override takes precedence, then detected, then default
   const detectedAspectRatio = data.aspectRatio || sourceAspectRatio || "16:9";

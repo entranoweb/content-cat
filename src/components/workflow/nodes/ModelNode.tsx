@@ -1,10 +1,11 @@
 "use client";
 
+import { memo } from "react";
 import type { NodeProps, Node } from "@xyflow/react";
 import BaseNode from "./BaseNode";
 import type { ModelNodeData } from "../types";
 
-export default function ModelNode({
+const ModelNode = memo(function ModelNode({
   data,
   selected,
 }: NodeProps<Node<ModelNodeData>>) {
@@ -65,4 +66,6 @@ export default function ModelNode({
       </div>
     </BaseNode>
   );
-}
+});
+
+export default ModelNode;

@@ -1,8 +1,6 @@
 // Main components
 export { default as WorkflowCanvas } from "./WorkflowCanvas";
-export { default as WorkflowToolbar } from "./WorkflowToolbar";
 export { default as WorkflowBottomToolbar } from "./WorkflowBottomToolbar";
-export { default as KonvaPreview } from "./KonvaPreview";
 export { WorkflowProvider, useWorkflowContext } from "./WorkflowContext";
 export type { InteractionMode } from "./WorkflowContext";
 

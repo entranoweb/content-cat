@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import {
   createNanoBananaProClient,
   parseFalError,
@@ -17,6 +18,18 @@ import { withTimeout, TIMEOUTS, TimeoutError } from "@/lib/utils/timeout";
 import { requireAuth } from "@/lib/auth-helpers";
 import { logger } from "@/lib/logger";
 import { resolveImageForFal } from "@/lib/storage";
+
+// Zod schema for image generation request
+const generateImageSchema = z.object({
+  prompt: z.string().min(1, "Prompt is required").max(2500, "Prompt too long"),
+  aspectRatio: z.enum(["1:1", "16:9", "9:16", "4:3", "3:4", "21:9", "9:21"]).default("1:1"),
+  resolution: z.enum(["1K", "2K"]).default("1K"),
+  outputFormat: z.enum(["png", "jpeg", "webp"]).default("png"),
+  imageUrls: z.array(z.string()).max(4, "Maximum 4 reference images").optional(),
+  numImages: z.number().int().min(1).max(4).default(1),
+  enableWebSearch: z.boolean().default(false),
+  enableSafetyChecker: z.boolean().default(true),
+});
 
 export async function POST(request: NextRequest) {
   const { user, error: authError } = await requireAuth();
@@ -44,6 +57,16 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
+    const parseResult = generateImageSchema.safeParse(body);
+
+    if (!parseResult.success) {
+      const firstError = parseResult.error.issues[0];
+      return NextResponse.json(
+        { error: firstError?.message || "Invalid request body" },
+        { status: 400 }
+      );
+    }
+
     const {
       prompt,
       aspectRatio,
@@ -53,14 +76,7 @@ export async function POST(request: NextRequest) {
       numImages,
       enableWebSearch,
       enableSafetyChecker,
-    } = body;
-
-    if (!prompt || typeof prompt !== "string") {
-      return NextResponse.json(
-        { error: "Prompt is required" },
-        { status: 400 }
-      );
-    }
+    } = parseResult.data;
 
     // Resolve local file URLs to base64 for FAL.ai
     // (FAL.ai can't access our local /api/files/ URLs)

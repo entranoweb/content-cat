@@ -82,18 +82,13 @@ export async function saveFile(
 }
 
 /**
- * Save multiple files to local storage
+ * Save multiple files to local storage (parallel)
  */
 export async function saveFiles(
   files: File[],
   category: string = "general"
 ): Promise<string[]> {
-  const urls: string[] = [];
-  for (const file of files) {
-    const url = await saveFile(file, category);
-    urls.push(url);
-  }
-  return urls;
+  return Promise.all(files.map((file) => saveFile(file, category)));
 }
 
 /**

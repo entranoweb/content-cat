@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Header from "@/components/Header";
 import { prompts, type Prompt, type PromptCategory } from "@/lib/prompts";
 
@@ -168,9 +169,16 @@ function CheckIcon({ className }: { className?: string }) {
   );
 }
 
-function PromptCardComponent({ prompt }: { prompt: Prompt }) {
+const PromptCardComponent = memo(function PromptCardComponent({
+  prompt,
+  priority = false,
+}: {
+  prompt: Prompt;
+  priority?: boolean;
+}) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const handleUsePrompt = () => {
     const encodedPrompt = encodeURIComponent(prompt.prompt);
@@ -186,11 +194,42 @@ function PromptCardComponent({ prompt }: { prompt: Prompt }) {
   return (
     <div className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/50 transition-all duration-200 hover:border-zinc-700 hover:bg-zinc-800/50">
       <div className="relative aspect-square overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        {/* Skeleton - fades out when loaded */}
+        <div
+          className={`absolute inset-0 z-10 transition-opacity duration-300 ${
+            isLoaded ? "pointer-events-none opacity-0" : "opacity-100"
+          }`}
+        >
+          <div className="skeleton-loader size-full">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                className="text-zinc-600"
+              >
+                <path
+                  d="M21 19V5C21 3.9 20.1 3 19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19ZM8.5 13.5L11 16.51L14.5 12L19 18H5L8.5 13.5Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <Image
           src={prompt.image}
           alt={prompt.title}
-          className="h-full w-full object-cover"
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+          className={`object-cover transition-opacity duration-300 ${
+            isLoaded ? "opacity-100" : "opacity-0"
+          }`}
+          priority={priority}
+          loading={priority ? "eager" : "lazy"}
+          onLoad={() => setIsLoaded(true)}
+          onError={() => setIsLoaded(true)}
         />
       </div>
       <div className="flex flex-1 flex-col justify-between gap-4 p-4">
@@ -218,7 +257,7 @@ function PromptCardComponent({ prompt }: { prompt: Prompt }) {
       </div>
     </div>
   );
-}
+});
 
 export default function PromptsPage() {
   const [activeCategory, setActiveCategory] = useState("all");
@@ -272,8 +311,12 @@ export default function PromptsPage() {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {filteredPrompts.map((prompt) => (
-                <PromptCardComponent key={prompt.id} prompt={prompt} />
+              {filteredPrompts.map((prompt, index) => (
+                <PromptCardComponent
+                  key={prompt.id}
+                  prompt={prompt}
+                  priority={index < 10}
+                />
               ))}
             </div>
           </section>

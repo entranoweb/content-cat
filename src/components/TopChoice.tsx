@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, memo } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 interface ToolCard {
@@ -82,6 +84,80 @@ const badgeStyles = {
   new: "bg-zinc-600",
 };
 
+const ToolCardComponent = memo(function ToolCardComponent({
+  card,
+  priority = false,
+}: {
+  card: ToolCard;
+  priority?: boolean;
+}) {
+  const [beforeLoaded, setBeforeLoaded] = useState(false);
+  const [afterLoaded, setAfterLoaded] = useState(false);
+  const isLoaded = beforeLoaded && afterLoaded;
+
+  return (
+    <Link
+      href={card.href}
+      className="group h-56 w-[17%] min-w-[160px] flex-shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl transition-colors duration-300 hover:border-white/20 hover:bg-black/50"
+    >
+      <div className="relative h-40 w-full overflow-hidden bg-black/20">
+        {/* Skeleton */}
+        <div
+          className={`absolute inset-0 z-10 transition-opacity duration-300 ${
+            isLoaded ? "pointer-events-none opacity-0" : "opacity-100"
+          }`}
+        >
+          <div className="skeleton-loader size-full" />
+        </div>
+
+        {/* Before image */}
+        <Image
+          src={card.image}
+          alt={`${card.title} before`}
+          fill
+          sizes="(max-width: 768px) 160px, 17vw"
+          className={`object-cover transition-opacity duration-300 ${
+            isLoaded ? "opacity-100" : "opacity-0"
+          }`}
+          priority={priority}
+          loading={priority ? "eager" : "lazy"}
+          onLoad={() => setBeforeLoaded(true)}
+          onError={() => setBeforeLoaded(true)}
+        />
+        {/* After image with right-to-left gradient fade reveal on hover */}
+        <Image
+          src={card.imageAfter}
+          alt={`${card.title} after`}
+          fill
+          sizes="(max-width: 768px) 160px, 17vw"
+          className={`object-cover transition-[opacity,mask-position] duration-700 ease-out [mask-image:linear-gradient(to_left,black_0%,black_60%,transparent_100%)] [mask-position:100%_0] [mask-repeat:no-repeat] [mask-size:200%_100%] group-hover:[mask-position:-50%_0] ${
+            isLoaded ? "opacity-100" : "opacity-0"
+          }`}
+          loading={priority ? "eager" : "lazy"}
+          onLoad={() => setAfterLoaded(true)}
+          onError={() => setAfterLoaded(true)}
+        />
+        {card.badge && (
+          <span
+            className={`${badgeStyles[card.badge.variant]} absolute left-3 top-3 z-10 rounded px-2 py-0.5 text-[10px] font-medium text-white`}
+          >
+            {card.badge.text}
+          </span>
+        )}
+      </div>
+      <div className="flex h-16 items-start justify-between gap-2 p-3">
+        <div className="min-w-0 flex-1">
+          <h4 className="truncate text-base font-medium text-white transition-colors duration-300 group-hover:text-pink-400">
+            {card.title}
+          </h4>
+          <p className="truncate text-xs text-zinc-300">{card.description}</p>
+        </div>
+        <span className="flex-shrink-0 text-lg text-zinc-300">→</span>
+      </div>
+    </Link>
+  );
+});
+
 export default function TopChoice() {
   return (
     <section className="mt-8 flex flex-col gap-4">
@@ -101,47 +177,12 @@ export default function TopChoice() {
         </Link>
       </div>
       <div className="hide-scrollbar flex gap-4 overflow-x-auto pb-2">
-        {toolCards.map((card) => (
-          <Link
+        {toolCards.map((card, index) => (
+          <ToolCardComponent
             key={card.title}
-            href={card.href}
-            className="group h-56 w-[17%] min-w-[160px] flex-shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl transition-colors duration-300 hover:border-white/20 hover:bg-black/50"
-          >
-            <div className="relative h-40 w-full overflow-hidden bg-black/20">
-              {/* Before image */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={card.image}
-                alt={`${card.title} before`}
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-              {/* After image with right-to-left gradient fade reveal on hover */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={card.imageAfter}
-                alt={`${card.title} after`}
-                className="absolute inset-0 h-full w-full object-cover transition-[mask-position] duration-700 ease-out [mask-image:linear-gradient(to_left,black_0%,black_60%,transparent_100%)] [mask-position:100%_0] [mask-repeat:no-repeat] [mask-size:200%_100%] group-hover:[mask-position:-50%_0]"
-              />
-              {card.badge && (
-                <span
-                  className={`${badgeStyles[card.badge.variant]} absolute left-3 top-3 z-10 rounded px-2 py-0.5 text-[10px] font-medium text-white`}
-                >
-                  {card.badge.text}
-                </span>
-              )}
-            </div>
-            <div className="flex h-16 items-start justify-between gap-2 p-3">
-              <div className="min-w-0 flex-1">
-                <h4 className="truncate text-base font-medium text-white transition-colors duration-300 group-hover:text-pink-400">
-                  {card.title}
-                </h4>
-                <p className="truncate text-xs text-zinc-300">
-                  {card.description}
-                </p>
-              </div>
-              <span className="flex-shrink-0 text-lg text-zinc-300">→</span>
-            </div>
-          </Link>
+            card={card}
+            priority={index < 4}
+          />
         ))}
       </div>
     </section>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useState, useRef } from "react";
+import React, { useCallback, useState, useRef, useEffect } from "react";
 import {
   addEdge,
   applyNodeChanges,
@@ -68,6 +68,9 @@ export function useWorkflow(options?: UseWorkflowOptions): UseWorkflowReturn {
   const [nodes, setNodes] = useState<WorkflowNode[]>(initialNodes);
   const [edges, setEdges] = useState<WorkflowEdge[]>(initialEdges);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
+  // Destructure options to get stable callback reference
+  const onNodeSelect = options?.onNodeSelect;
 
   // Clipboard for copy/paste
   const clipboardRef = useRef<ClipboardData | null>(null);
@@ -153,6 +156,19 @@ export function useWorkflow(options?: UseWorkflowOptions): UseWorkflowReturn {
     [saveToHistory]
   );
 
+  // Refs to access current state without recreating callbacks
+  const nodesRef = useRef(nodes);
+  const edgesRef = useRef(edges);
+
+  // Update refs in effect to avoid lint warning
+  useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
+
+  useEffect(() => {
+    edgesRef.current = edges;
+  }, [edges]);
+
   const onNodesChange = useCallback(
     (changes: NodeChange<WorkflowNode>[]) => {
       setNodes((nds) => {
@@ -172,16 +188,16 @@ export function useWorkflow(options?: UseWorkflowOptions): UseWorkflowReturn {
             (change) => change.type === "position"
           );
           if (hasPositionChange) {
-            debouncedSaveToHistory(newNodes, edges);
+            debouncedSaveToHistory(newNodes, edgesRef.current);
           } else {
-            saveToHistory(newNodes, edges);
+            saveToHistory(newNodes, edgesRef.current);
           }
         }
 
         return newNodes;
       });
     },
-    [edges, saveToHistory, debouncedSaveToHistory]
+    [saveToHistory, debouncedSaveToHistory]
   );
 
   const onEdgesChange = useCallback(
@@ -194,38 +210,38 @@ export function useWorkflow(options?: UseWorkflowOptions): UseWorkflowReturn {
         );
 
         if (hasSignificantChange) {
-          saveToHistory(nodes, newEdges);
+          saveToHistory(nodesRef.current, newEdges);
         }
 
         return newEdges;
       });
     },
-    [nodes, saveToHistory]
+    [saveToHistory]
   );
 
   const onConnect = useCallback(
     (connection: Connection) => {
       setEdges((eds) => {
         const newEdges = addEdge({ ...connection, type: "gradient" }, eds);
-        saveToHistory(nodes, newEdges);
+        saveToHistory(nodesRef.current, newEdges);
         return newEdges;
       });
     },
-    [nodes, saveToHistory]
+    [saveToHistory]
   );
 
   const onNodeClick = useCallback(
     (nodeId: string) => {
       setSelectedNodeId(nodeId);
-      options?.onNodeSelect?.(nodeId);
+      onNodeSelect?.(nodeId);
     },
-    [options]
+    [onNodeSelect]
   );
 
   const clearSelection = useCallback(() => {
     setSelectedNodeId(null);
-    options?.onNodeSelect?.(null);
-  }, [options]);
+    onNodeSelect?.(null);
+  }, [onNodeSelect]);
 
   const addNode = useCallback(
     (type: NodeType, position?: { x: number; y: number }) => {

@@ -219,13 +219,6 @@ export class Kling25TurboClient {
 
     const finalAspectRatio = input.aspect_ratio || DEFAULT_ASPECT_RATIO;
 
-    // TEMP: Debug logging for aspect ratio issue
-    console.log("[DEBUG] Kling 2.5 Turbo image-to-video:", {
-      inputAspectRatio: input.aspect_ratio,
-      finalAspectRatio,
-      defaultAspectRatio: DEFAULT_ASPECT_RATIO,
-    });
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await (fal.subscribe as any)(
       KLING_25_TURBO_IMAGE_TO_VIDEO_MODEL,

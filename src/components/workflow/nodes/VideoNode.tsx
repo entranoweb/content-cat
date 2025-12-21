@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback, memo } from "react";
 import type { NodeProps, Node } from "@xyflow/react";
 import { useReactFlow } from "@xyflow/react";
 import BaseNode from "./BaseNode";
@@ -65,7 +65,7 @@ const MAX_HEIGHT = 330;
 const MIN_HEIGHT = 140;
 const DEFAULT_ASPECT_RATIO = 4 / 4.25; // ~4:4.25 for placeholder
 
-export default function VideoNode({
+const VideoNode = memo(function VideoNode({
   id,
   data,
   selected,
@@ -259,4 +259,6 @@ export default function VideoNode({
       </div>
     </BaseNode>
   );
-}
+});
+
+export default VideoNode;

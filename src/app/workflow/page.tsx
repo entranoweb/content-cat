@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { WorkflowCanvas } from "@/components/workflow";
 import Header from "@/components/Header";
 import { WorkflowProvider } from "@/components/workflow/WorkflowContext";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useWorkflow } from "@/hooks/useWorkflow";
 import { useWorkflowExecution } from "@/hooks/useWorkflowExecution";
 import {
@@ -533,14 +534,16 @@ function WorkflowPageWithProvider() {
 
 export default function WorkflowPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex h-screen items-center justify-center bg-[#0a0a0a]">
-          <div className="text-gray-400">Loading workflow...</div>
-        </div>
-      }
-    >
-      <WorkflowPageWithProvider />
-    </Suspense>
+    <ErrorBoundary>
+      <Suspense
+        fallback={
+          <div className="flex h-screen items-center justify-center bg-[#0a0a0a]">
+            <div className="text-gray-400">Loading workflow...</div>
+          </div>
+        }
+      >
+        <WorkflowPageWithProvider />
+      </Suspense>
+    </ErrorBoundary>
   );
 }

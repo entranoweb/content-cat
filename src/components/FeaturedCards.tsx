@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -51,32 +54,57 @@ const featuredCards: FeaturedCard[] = [
   },
 ];
 
+const FeaturedCard = memo(function FeaturedCard({
+  card,
+  priority = false,
+}: {
+  card: FeaturedCard;
+  priority?: boolean;
+}) {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  return (
+    <Link href={card.href} className="group w-[38%] flex-shrink-0">
+      <div className="relative aspect-[16/9] overflow-hidden rounded-2xl bg-black/30 backdrop-blur-md">
+        {/* Skeleton */}
+        <div
+          className={`absolute inset-0 z-10 transition-opacity duration-300 ${
+            isLoaded ? "pointer-events-none opacity-0" : "opacity-100"
+          }`}
+        >
+          <div className="skeleton-loader size-full" />
+        </div>
+
+        <Image
+          src={card.image}
+          alt={card.title}
+          fill
+          sizes="(max-width: 768px) 38vw, 300px"
+          className={`object-cover transition-opacity duration-300 ${
+            isLoaded ? "opacity-100" : "opacity-0"
+          }`}
+          priority={priority}
+          loading={priority ? "eager" : "lazy"}
+          onLoad={() => setIsLoaded(true)}
+          onError={() => setIsLoaded(true)}
+        />
+      </div>
+      <div className="mt-2">
+        <h4 className="font-heading text-sm text-white transition-colors duration-300 group-hover:text-pink-400">
+          {card.title}
+        </h4>
+        <p className="text-xs text-zinc-300">{card.description}</p>
+      </div>
+    </Link>
+  );
+});
+
 export default function FeaturedCards() {
   return (
     <section>
       <div className="hide-scrollbar flex gap-4 overflow-x-auto pb-2">
-        {featuredCards.map((card) => (
-          <Link
-            key={card.title}
-            href={card.href}
-            className="group w-[38%] flex-shrink-0"
-          >
-            <div className="relative aspect-[16/9] overflow-hidden rounded-2xl bg-black/30 backdrop-blur-md">
-              <Image
-                src={card.image}
-                alt={card.title}
-                fill
-                sizes="(max-width: 768px) 38vw, 300px"
-                className="object-cover"
-              />
-            </div>
-            <div className="mt-2">
-              <h4 className="font-heading text-sm text-white transition-colors duration-300 group-hover:text-pink-400">
-                {card.title}
-              </h4>
-              <p className="text-xs text-zinc-300">{card.description}</p>
-            </div>
-          </Link>
+        {featuredCards.map((card, index) => (
+          <FeaturedCard key={card.title} card={card} priority={index < 3} />
         ))}
       </div>
     </section>

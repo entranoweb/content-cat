@@ -111,11 +111,6 @@ async function convertToDataUrl(url: string): Promise<string> {
         URL.revokeObjectURL(objectUrl);
         try {
           const compressed = compressImageElement(img);
-          console.log(
-            "[Execution] Compressed image size:",
-            Math.round(compressed.length / 1024),
-            "KB"
-          );
           resolve(compressed);
         } catch (error) {
           reject(error);
@@ -367,15 +362,8 @@ export function useWorkflowExecution() {
       nodeData: NanoBananaProNodeData,
       inputs: ConnectedInput[]
     ): Promise<ExecutionResult> => {
-      // Debug logging
-      console.log("[Execution] NanoBananaPro inputs:", inputs);
-      console.log("[Execution] Node data:", nodeData);
-
       const prompt = extractPrompt(inputs) || nodeData.prompt;
       let imageUrl = extractImageUrl(inputs);
-
-      console.log("[Execution] Extracted prompt:", prompt);
-      console.log("[Execution] Extracted imageUrl:", imageUrl);
 
       if (!prompt) {
         return {
@@ -389,17 +377,13 @@ export function useWorkflowExecution() {
 
       // Fetch character reference images if a character is selected
       if (nodeData.characterId) {
-        console.log("[Execution] Fetching character images for:", nodeData.characterId);
         const charImages = await fetchCharacterImages(nodeData.characterId);
-        console.log("[Execution] Character images:", charImages.length);
         allImageUrls.push(...charImages);
       }
 
       // Fetch product reference images if a product is selected
       if (nodeData.productId) {
-        console.log("[Execution] Fetching product images for:", nodeData.productId);
         const prodImages = await fetchProductImages(nodeData.productId);
-        console.log("[Execution] Product images:", prodImages.length);
         allImageUrls.push(...prodImages);
       }
 
@@ -407,10 +391,6 @@ export function useWorkflowExecution() {
       if (imageUrl) {
         try {
           imageUrl = await convertToDataUrl(imageUrl);
-          console.log(
-            "[Execution] Converted imageUrl to data URL (length):",
-            imageUrl.length
-          );
           allImageUrls.push(imageUrl);
         } catch {
           return { success: false, error: "Failed to process reference image" };

@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import {
   createKling26Client,
   createKling25TurboClient,
   createWan26Client,
   parseFalError,
   type VideoModelId,
+  type Kling25TurboSpecialFx,
 } from "@/lib/fal";
 import { prisma } from "@/lib/prisma";
 import { getApiKey } from "@/lib/services/apiKeyService";
@@ -18,6 +20,24 @@ import { withTimeout, TIMEOUTS, TimeoutError } from "@/lib/utils/timeout";
 import { requireAuth } from "@/lib/auth-helpers";
 import { logger } from "@/lib/logger";
 import { resolveImageForFal } from "@/lib/storage";
+
+// Zod schema for video generation request
+const generateVideoSchema = z.object({
+  prompt: z.string().min(1, "Prompt is required").max(2500, "Prompt too long"),
+  model: z.enum(["kling-2.6", "kling-2.5-turbo", "wan-2.6"]).default("kling-2.6"),
+  mode: z.enum(["text-to-video", "image-to-video"]).default("text-to-video"),
+  duration: z.enum(["5", "10", "15"]).default("5"),
+  aspectRatio: z.enum(["16:9", "9:16", "1:1", "4:3", "3:4"]).default("16:9"),
+  resolution: z.enum(["480p", "720p", "1080p"]).optional(),
+  audioEnabled: z.boolean().default(false),
+  enhanceEnabled: z.boolean().default(false),
+  imageUrl: z.string().optional(),
+  endImageUrl: z.string().optional(),
+  negativePrompt: z.string().max(500).optional(),
+  cfgScale: z.number().min(0).max(1).default(0.5),
+  seed: z.number().int().optional(),
+  specialFx: z.string().optional(),
+});
 
 export async function POST(request: NextRequest) {
   const { user, error: authError } = await requireAuth();
@@ -45,6 +65,16 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
+    const parseResult = generateVideoSchema.safeParse(body);
+
+    if (!parseResult.success) {
+      const firstError = parseResult.error.issues[0];
+      return NextResponse.json(
+        { error: firstError?.message || "Invalid request body" },
+        { status: 400 }
+      );
+    }
+
     const {
       prompt,
       model,
@@ -60,14 +90,7 @@ export async function POST(request: NextRequest) {
       cfgScale,
       seed,
       specialFx,
-    } = body;
-
-    if (!prompt || typeof prompt !== "string") {
-      return NextResponse.json(
-        { error: "Prompt is required" },
-        { status: 400 }
-      );
-    }
+    } = parseResult.data;
 
     const apiKey = await getApiKey(user!.id);
     if (!apiKey) {
@@ -91,14 +114,6 @@ export async function POST(request: NextRequest) {
       audioEnabled,
       hasImageUrl: !!imageUrl,
       hasEndImageUrl: !!endImageUrl,
-    });
-
-    // TEMP: Console log for debugging aspect ratio issue
-    console.log("[DEBUG] Video generation request:", {
-      modelId,
-      mode,
-      aspectRatio,
-      hasImageUrl: !!imageUrl,
     });
 
     // Resolve local file URLs to base64 for FAL.ai
@@ -149,7 +164,7 @@ export async function POST(request: NextRequest) {
               negative_prompt: negativePrompt,
               cfg_scale: cfgScale ?? 0.5,
               tail_image_url: resolvedEndImageUrl,
-              special_fx: specialFx || undefined,
+              special_fx: (specialFx as Kling25TurboSpecialFx) || undefined,
               seed,
             });
           } else {

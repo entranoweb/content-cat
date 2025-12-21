@@ -432,11 +432,23 @@ export const prompts: Prompt[] = [
   },
 ];
 
+// Pre-computed indexes for O(1) lookups
+const promptsById = new Map<string, Prompt>(
+  prompts.map((p) => [p.id, p])
+);
+
+const promptsByCategory = new Map<PromptCategory, Prompt[]>();
+promptsByCategory.set("all", prompts);
+for (const prompt of prompts) {
+  const existing = promptsByCategory.get(prompt.category) || [];
+  existing.push(prompt);
+  promptsByCategory.set(prompt.category, existing);
+}
+
 export function getPromptById(id: string): Prompt | undefined {
-  return prompts.find((p) => p.id === id);
+  return promptsById.get(id);
 }
 
 export function getPromptsByCategory(category: PromptCategory): Prompt[] {
-  if (category === "all") return prompts;
-  return prompts.filter((p) => p.category === category);
+  return promptsByCategory.get(category) || [];
 }

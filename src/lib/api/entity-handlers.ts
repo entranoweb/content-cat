@@ -151,7 +151,7 @@ export function createDeleteHandler(entityType: EntityType) {
 }
 
 // PATCH handler - Update entity only if belongs to current user
-// Uses atomic update with ownership check to prevent race conditions
+// Uses findFirst + update pattern to verify ownership before updating
 export function createUpdateHandler(entityType: EntityType) {
   return async function PATCH(
     request: Request,
@@ -176,30 +176,25 @@ export function createUpdateHandler(entityType: EntityType) {
         updateData.thumbnailUrl = referenceImages[0];
       }
 
-      // Atomic update with ownership check - prevents race condition
-      const result =
+      // Verify ownership first, then update in single query
+      // Using findFirst to check existence, then update to get updated entity back
+      const existing =
         entityType === "character"
-          ? await prisma.character.updateMany({
-              where: { id, userId: user!.id },
-              data: updateData,
-            })
-          : await prisma.product.updateMany({
-              where: { id, userId: user!.id },
-              data: updateData,
-            });
+          ? await prisma.character.findFirst({ where: { id, userId: user!.id }, select: { id: true } })
+          : await prisma.product.findFirst({ where: { id, userId: user!.id }, select: { id: true } });
 
-      if (result.count === 0) {
+      if (!existing) {
         return NextResponse.json(
           { error: `${capitalizeFirst(entityType)} not found` },
           { status: 404 }
         );
       }
 
-      // Fetch the updated entity to return (with ownership check)
+      // Now update and get the result in one query
       const entity =
         entityType === "character"
-          ? await prisma.character.findFirst({ where: { id, userId: user!.id } })
-          : await prisma.product.findFirst({ where: { id, userId: user!.id } });
+          ? await prisma.character.update({ where: { id }, data: updateData })
+          : await prisma.product.update({ where: { id }, data: updateData });
 
       return NextResponse.json(entity);
     } catch (error) {

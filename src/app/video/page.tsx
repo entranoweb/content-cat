@@ -11,10 +11,11 @@ import {
   FolderIcon,
   BookIcon,
 } from "@/components/video";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useVideoGeneration, useVideos, useImageUpload } from "@/hooks";
 import type { VideoModelId } from "@/lib/fal";
 
-export default function VideoPage() {
+function VideoPageContent() {
   const [showPresetSelector, setShowPresetSelector] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
@@ -211,5 +212,13 @@ export default function VideoPage() {
         onCancel={() => setDeleteConfirmId(null)}
       />
     </div>
+  );
+}
+
+export default function VideoPage() {
+  return (
+    <ErrorBoundary>
+      <VideoPageContent />
+    </ErrorBoundary>
   );
 }
