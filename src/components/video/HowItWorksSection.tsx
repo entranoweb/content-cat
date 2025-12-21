@@ -6,12 +6,12 @@ export default function HowItWorksSection() {
   return (
     <div className="animate-in fade-in duration-200">
       {/* Hero Section */}
-      <section className="flex w-full flex-col self-start rounded-[1.25rem] border border-zinc-800 bg-zinc-900 px-8 py-24">
+      <section className="flex w-full flex-col self-start rounded-[1.25rem] border border-white/10 bg-black/40 px-8 py-24 backdrop-blur-xl">
         <header className="mb-8">
           <h1 className="font-heading mb-2 text-4xl font-bold text-white uppercase">
             Turn Images Into Video
           </h1>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-zinc-300">
             Pick a preset or go manual. Camera moves, effects, all that.
           </p>
         </header>
@@ -34,7 +34,7 @@ export default function HowItWorksSection() {
             <h2 className="font-heading mb-2 text-sm font-bold text-white uppercase">
               Add Image
             </h2>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-zinc-300">
               Upload or generate an image to start your animation
             </p>
           </article>
@@ -57,7 +57,7 @@ export default function HowItWorksSection() {
             <h2 className="font-heading mb-2 text-sm font-bold text-white uppercase">
               Choose Preset
             </h2>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-zinc-300">
               Pick a preset to control your image movement
             </p>
           </article>
@@ -80,7 +80,7 @@ export default function HowItWorksSection() {
             <h2 className="font-heading mb-2 text-sm font-bold text-white uppercase">
               Get Video
             </h2>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-zinc-300">
               Click generate to create your final animated video!
             </p>
           </article>

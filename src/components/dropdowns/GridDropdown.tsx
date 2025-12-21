@@ -42,7 +42,7 @@ export function GridDropdown({
                 onClose();
               }}
               className={`flex w-full flex-col items-start rounded-lg px-2.5 py-2 text-left transition-colors outline-none hover:bg-white/5 ${
-                value === option.id ? "bg-white/10 ring-1 ring-cyan-400/50" : ""
+                value === option.id ? "bg-white/10 ring-1 ring-pink-400/50" : ""
               }`}
             >
               <span className="text-xs font-medium text-white capitalize">

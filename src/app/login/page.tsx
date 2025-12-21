@@ -41,7 +41,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex h-screen flex-col bg-[#0a0a0a]">
+    <div className="relative flex h-screen flex-col">
       {/* Navbar - logo only */}
       <header className="flex items-center px-6 py-4">
         <Link href="/" className="font-heading gradient-shift text-xl">
@@ -75,7 +75,7 @@ export default function LoginPage() {
               {/* Email input */}
               <div className="grid w-full">
                 <input
-                  className="h-[42px] w-full rounded-xl border border-transparent bg-[#1a1a1a] px-4 text-sm font-medium text-zinc-300 transition placeholder:text-zinc-500 hover:border-white/20 focus:border-zinc-600 focus:bg-[#0a0a0a] focus:outline-none"
+                  className="h-[42px] w-full rounded-xl border border-white/10 bg-black/40 px-4 text-sm font-medium text-white transition placeholder:text-zinc-400 hover:border-white/30 focus:border-pink-400/50 focus:bg-black/60 focus:outline-none backdrop-blur-sm"
                   placeholder="Email"
                   required
                   type="email"
@@ -89,7 +89,7 @@ export default function LoginPage() {
               {/* Password input */}
               <div className="grid w-full">
                 <input
-                  className="h-[42px] w-full rounded-xl border border-transparent bg-[#1a1a1a] px-4 text-sm font-medium text-zinc-300 transition placeholder:text-zinc-500 hover:border-white/20 focus:border-zinc-600 focus:bg-[#0a0a0a] focus:outline-none"
+                  className="h-[42px] w-full rounded-xl border border-white/10 bg-black/40 px-4 text-sm font-medium text-white transition placeholder:text-zinc-400 hover:border-white/30 focus:border-pink-400/50 focus:bg-black/60 focus:outline-none backdrop-blur-sm"
                   placeholder="Password"
                   required
                   type="password"
@@ -102,7 +102,7 @@ export default function LoginPage() {
 
               {/* Submit button */}
               <input
-                className="inline-grid h-12 w-full max-w-full cursor-pointer content-center items-center justify-center overflow-hidden rounded-xl border border-transparent bg-[#e8e8e8] text-sm font-medium text-ellipsis whitespace-nowrap text-[#131313] ring-transparent transition hover:bg-[#d4d4d4] focus:outline-none focus-visible:ring-2 disabled:cursor-wait disabled:bg-[#2a2a2a] disabled:text-zinc-600"
+                className="inline-grid h-12 w-full max-w-full cursor-pointer content-center items-center justify-center overflow-hidden rounded-xl border border-transparent bg-[#e8e8e8] text-sm font-medium text-ellipsis whitespace-nowrap text-[#131313] ring-transparent transition hover:bg-[#d4d4d4] focus:outline-none focus-visible:ring-2 disabled:cursor-wait disabled:bg-zinc-700 disabled:text-zinc-400"
                 type="submit"
                 value={isLoading ? "Logging in..." : "Log in"}
               />
@@ -110,7 +110,7 @@ export default function LoginPage() {
           </form>
 
           {/* Links */}
-          <div className="mt-4 flex justify-between text-zinc-500">
+          <div className="mt-4 flex justify-between text-zinc-300">
             <Link
               className="inline-grid grid-flow-col content-center gap-1.5 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap transition hover:brightness-75"
               href="/"

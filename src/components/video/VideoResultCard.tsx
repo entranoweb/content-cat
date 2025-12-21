@@ -34,6 +34,8 @@ const VideoResultCard = memo(function VideoResultCard({
   onAttachImages,
 }: VideoResultCardProps) {
   const [isFavorited, setIsFavorited] = useState(false);
+  // If no thumbnail, consider it "loaded" immediately (show fallback)
+  const [isLoaded, setIsLoaded] = useState(!video.thumbnailUrl);
   const { videoRef, isPlaying, handlePlayPause, handleVideoEnd } =
     useVideoPlayback();
 
@@ -55,7 +57,7 @@ const VideoResultCard = memo(function VideoResultCard({
 
   return (
     <div
-      className="animate-in fade-in slide-in-from-bottom-4 w-full pt-1 pl-1 duration-500"
+      className="grid-item-perf animate-in fade-in slide-in-from-bottom-4 w-full pt-1 pl-1 duration-500"
       style={{ marginBottom: "20px" }}
     >
       <li style={{ listStyle: "none" }}>
@@ -71,45 +73,57 @@ const VideoResultCard = memo(function VideoResultCard({
             className="grid grid-flow-row-dense auto-rows-[1fr] gap-2 will-change-auto"
             style={{ gridTemplateColumns: "1fr" }}
           >
-            <div className="group relative overflow-hidden rounded-2xl bg-zinc-900 transition has-[[aria-selected=true]]:ring-3 has-[[aria-selected=true]]:ring-white">
+            <div className="group relative overflow-hidden rounded-2xl border border-white/10 transition has-[[aria-selected=true]]:ring-3 has-[[aria-selected=true]]:ring-white">
               <figure
                 aria-selected="false"
-                className="group relative z-0 h-full w-full"
+                className="group relative h-full w-full"
                 style={{ aspectRatio: "1.77778 / 1" }}
               >
-                {/* Video Player - hidden until playing */}
-                <video
-                  ref={videoRef}
-                  src={video.url}
-                  className={`absolute inset-0 size-full object-contain transition-opacity duration-300 ${
-                    isPlaying ? "z-[1] opacity-100" : "-z-[1] opacity-0"
+                {/* Skeleton - fades out when loaded */}
+                <div
+                  className={`absolute inset-0 transition-opacity duration-300 ${
+                    isLoaded ? "opacity-0 pointer-events-none" : "opacity-100"
                   }`}
-                  playsInline
-                  onEnded={handleVideoEnd}
-                />
+                >
+                  <div className="skeleton-loader size-full" />
+                </div>
 
-                {/* Thumbnail/Preview Image */}
-                {video.thumbnailUrl ? (
+                {/* Video Player - only rendered when playing to avoid resource drain */}
+                {isPlaying && (
+                  <video
+                    ref={videoRef}
+                    src={video.url}
+                    className="absolute inset-0 z-[1] size-full object-contain"
+                    playsInline
+                    autoPlay
+                    onEnded={handleVideoEnd}
+                  />
+                )}
+
+                {/* Thumbnail Image - always use image, never video for poster */}
+                {video.thumbnailUrl && !isPlaying && (
                   <Image
                     src={video.thumbnailUrl}
                     alt={`Video: ${video.prompt.slice(0, 50)}`}
                     fill
-                    className={`pointer-events-auto -z-[1] object-contain transition-opacity duration-300 ${
-                      isPlaying ? "opacity-0" : "opacity-100"
+                    loading="lazy"
+                    unoptimized
+                    className={`pointer-events-auto object-contain transition-opacity duration-300 ${
+                      isLoaded ? "opacity-100" : "opacity-0"
                     }`}
                     sizes="(max-width: 768px) 500px, 1280px"
+                    onLoad={() => setIsLoaded(true)}
+                    onError={() => setIsLoaded(true)}
                   />
-                ) : (
-                  /* Video as poster when no thumbnail */
-                  <video
-                    src={video.url}
-                    className={`pointer-events-none absolute inset-0 -z-[1] size-full object-contain transition-opacity duration-300 ${
-                      isPlaying ? "opacity-0" : "opacity-100"
-                    }`}
-                    muted
-                    playsInline
-                    preload="metadata"
-                  />
+                )}
+
+                {/* Fallback: Show skeleton if no thumbnail and not playing */}
+                {!video.thumbnailUrl && !isPlaying && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-zinc-900">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" className="text-zinc-600">
+                      <path d="M8 5.14v14l11-7-11-7z" fill="currentColor" />
+                    </svg>
+                  </div>
                 )}
 
                 {/* Play/Pause Button - Centered Grid */}
@@ -322,14 +336,14 @@ const VideoResultCard = memo(function VideoResultCard({
           {/* Action Panel / Info Section */}
           <div id="action-panel" className="min-w-60 will-change-auto">
             <div
-              className="relative grid h-full content-start justify-items-start gap-3 rounded-2xl border border-zinc-800/50 bg-zinc-950 p-4 pb-14"
+              className="relative grid h-full content-start justify-items-start gap-3 rounded-2xl border border-white/10 bg-black/60 backdrop-blur-xl p-4 pb-14"
               style={{ minHeight: "100%" }}
             >
               {/* Model Badge */}
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  className="flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs font-medium text-white"
+                  className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/10 px-2 py-1 text-xs font-medium text-white"
                 >
                   {MODEL_ICONS[video.model] || <KlingIcon />}
                   {MODEL_NAMES[video.model] || video.model}
@@ -337,8 +351,8 @@ const VideoResultCard = memo(function VideoResultCard({
               </div>
 
               {/* Prompt Text */}
-              <div className="group flex min-w-0 flex-1 items-start text-sm text-zinc-400">
-                <div className="group hide-scrollbar flex max-h-15 flex-col gap-2 overflow-y-scroll py-0 text-zinc-400 duration-0 select-none hover:bg-black hover:text-zinc-200 focus-visible:bg-black focus-visible:ring focus-visible:ring-white lg:-mx-3 lg:max-h-40 lg:rounded-lg lg:px-3 lg:py-2">
+              <div className="group flex min-w-0 flex-1 items-start text-sm text-zinc-300">
+                <div className="group hide-scrollbar flex max-h-15 flex-col gap-2 overflow-y-scroll py-0 text-zinc-300 duration-0 select-none hover:bg-black hover:text-zinc-200 focus-visible:bg-black focus-visible:ring focus-visible:ring-white lg:-mx-3 lg:max-h-40 lg:rounded-lg lg:px-3 lg:py-2">
                   <p className="min-w-0 flex-1 cursor-copy text-sm break-words break-all whitespace-pre-wrap">
                     {video.prompt}
                   </p>
@@ -347,101 +361,101 @@ const VideoResultCard = memo(function VideoResultCard({
 
               {/* Input Thumbnails */}
               <div className="flex flex-wrap gap-2">
-                {/* Motion Reference Thumbnail */}
-                {video.motionVideoUrl && (
-                  <button
-                    type="button"
-                    className="group relative size-6 -rotate-[5deg] cursor-pointer overflow-hidden rounded-md duration-150 outline-none select-none hover:scale-125 hover:rotate-0 focus-visible:scale-125 focus-visible:ring-2 focus-visible:ring-white active:scale-115 lg:size-10 lg:rounded-lg"
-                  >
-                    <video
-                      loop
-                      playsInline
-                      disablePictureInPicture
-                      preload="none"
-                      src={video.motionVideoUrl}
-                      className="size-full object-cover"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        className="size-3.5 text-white"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          clipRule="evenodd"
-                          d="M5.16667 2.99935C5.16667 1.98683 5.98748 1.16602 7 1.16602H11.6667C12.6792 1.16602 13.5 1.98683 13.5 2.99935V10.3327C13.5 11.3452 12.6792 12.166 11.6667 12.166H7C5.98748 12.166 5.16667 11.3452 5.16667 10.3327V2.99935Z"
-                          fill="currentColor"
-                        />
-                      </svg>
-                    </div>
-                  </button>
-                )}
+                  {/* Motion Reference Thumbnail */}
+                  {video.motionVideoUrl && (
+                    <button
+                      type="button"
+                      className="group relative size-6 -rotate-[5deg] cursor-pointer overflow-hidden rounded-md duration-150 outline-none select-none hover:scale-125 hover:rotate-0 focus-visible:scale-125 focus-visible:ring-2 focus-visible:ring-white active:scale-115 lg:size-10 lg:rounded-lg"
+                    >
+                      <video
+                        loop
+                        playsInline
+                        disablePictureInPicture
+                        preload="none"
+                        src={video.motionVideoUrl}
+                        className="size-full object-cover"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          className="size-3.5 text-white"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            clipRule="evenodd"
+                            d="M5.16667 2.99935C5.16667 1.98683 5.98748 1.16602 7 1.16602H11.6667C12.6792 1.16602 13.5 1.98683 13.5 2.99935V10.3327C13.5 11.3452 12.6792 12.166 11.6667 12.166H7C5.98748 12.166 5.16667 11.3452 5.16667 10.3327V2.99935Z"
+                            fill="currentColor"
+                          />
+                        </svg>
+                      </div>
+                    </button>
+                  )}
 
-                {/* Start Image Thumbnail */}
-                {video.startImageUrl && (
-                  <button
-                    type="button"
-                    onClick={() => handleAttachImage(video.startImageUrl!)}
-                    title="Click to use this image"
-                    className="group relative size-6 rotate-[5deg] cursor-pointer overflow-hidden rounded-md duration-150 outline-none select-none hover:scale-125 hover:rotate-0 focus-visible:scale-125 focus-visible:ring-2 focus-visible:ring-white active:scale-115 lg:size-10 lg:rounded-lg"
-                  >
-                    <Image
-                      src={video.startImageUrl}
-                      alt="Start image"
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        className="size-3.5 text-white"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          clipRule="evenodd"
-                          d="M5.16667 2.99935C5.16667 1.98683 5.98748 1.16602 7 1.16602H11.6667C12.6792 1.16602 13.5 1.98683 13.5 2.99935V10.3327C13.5 11.3452 12.6792 12.166 11.6667 12.166H7C5.98748 12.166 5.16667 11.3452 5.16667 10.3327V2.99935ZM7 2.16602C6.53976 2.16602 6.16667 2.53911 6.16667 2.99935V10.3327C6.16667 10.7929 6.53976 11.166 7 11.166H11.6667C12.1269 11.166 12.5 10.7929 12.5 10.3327V2.99935C12.5 2.53911 12.1269 2.16602 11.6667 2.16602H7ZM3 4.83268C3.27614 4.83268 3.5 5.05654 3.5 5.33268V12.9993C3.5 13.4596 3.8731 13.8327 4.33333 13.8327H9C9.27614 13.8327 9.5 14.0565 9.5 14.3327C9.5 14.6088 9.27614 14.8327 9 14.8327H4.33333C3.32081 14.8327 2.5 14.0119 2.5 12.9993V5.33268C2.5 5.05654 2.72386 4.83268 3 4.83268Z"
-                          fill="currentColor"
-                        />
-                      </svg>
-                    </div>
-                  </button>
-                )}
+                  {/* Start Image Thumbnail */}
+                  {video.startImageUrl && (
+                    <button
+                      type="button"
+                      onClick={() => handleAttachImage(video.startImageUrl!)}
+                      title="Click to use this image"
+                      className="group relative size-6 rotate-[5deg] cursor-pointer overflow-hidden rounded-md duration-150 outline-none select-none hover:scale-125 hover:rotate-0 focus-visible:scale-125 focus-visible:ring-2 focus-visible:ring-white active:scale-115 lg:size-10 lg:rounded-lg"
+                    >
+                      <Image
+                        src={video.startImageUrl}
+                        alt="Start image"
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          className="size-3.5 text-white"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            clipRule="evenodd"
+                            d="M5.16667 2.99935C5.16667 1.98683 5.98748 1.16602 7 1.16602H11.6667C12.6792 1.16602 13.5 1.98683 13.5 2.99935V10.3327C13.5 11.3452 12.6792 12.166 11.6667 12.166H7C5.98748 12.166 5.16667 11.3452 5.16667 10.3327V2.99935ZM7 2.16602C6.53976 2.16602 6.16667 2.53911 6.16667 2.99935V10.3327C6.16667 10.7929 6.53976 11.166 7 11.166H11.6667C12.1269 11.166 12.5 10.7929 12.5 10.3327V2.99935C12.5 2.53911 12.1269 2.16602 11.6667 2.16602H7ZM3 4.83268C3.27614 4.83268 3.5 5.05654 3.5 5.33268V12.9993C3.5 13.4596 3.8731 13.8327 4.33333 13.8327H9C9.27614 13.8327 9.5 14.0565 9.5 14.3327C9.5 14.6088 9.27614 14.8327 9 14.8327H4.33333C3.32081 14.8327 2.5 14.0119 2.5 12.9993V5.33268C2.5 5.05654 2.72386 4.83268 3 4.83268Z"
+                            fill="currentColor"
+                          />
+                        </svg>
+                      </div>
+                    </button>
+                  )}
 
-                {/* End Image Thumbnail */}
-                {video.endImageUrl && (
-                  <button
-                    type="button"
-                    onClick={() => handleAttachImage(video.endImageUrl!)}
-                    title="Click to use this image"
-                    className="group relative size-6 -rotate-[5deg] cursor-pointer overflow-hidden rounded-md duration-150 outline-none select-none hover:scale-125 hover:rotate-0 focus-visible:scale-125 focus-visible:ring-2 focus-visible:ring-white active:scale-115 lg:size-10 lg:rounded-lg"
-                  >
-                    <Image
-                      src={video.endImageUrl}
-                      alt="End image"
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        className="size-3.5 text-white"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          clipRule="evenodd"
-                          d="M5.16667 2.99935C5.16667 1.98683 5.98748 1.16602 7 1.16602H11.6667C12.6792 1.16602 13.5 1.98683 13.5 2.99935V10.3327C13.5 11.3452 12.6792 12.166 11.6667 12.166H7C5.98748 12.166 5.16667 11.3452 5.16667 10.3327V2.99935ZM7 2.16602C6.53976 2.16602 6.16667 2.53911 6.16667 2.99935V10.3327C6.16667 10.7929 6.53976 11.166 7 11.166H11.6667C12.1269 11.166 12.5 10.7929 12.5 10.3327V2.99935C12.5 2.53911 12.1269 2.16602 11.6667 2.16602H7ZM3 4.83268C3.27614 4.83268 3.5 5.05654 3.5 5.33268V12.9993C3.5 13.4596 3.8731 13.8327 4.33333 13.8327H9C9.27614 13.8327 9.5 14.0565 9.5 14.3327C9.5 14.6088 9.27614 14.8327 9 14.8327H4.33333C3.32081 14.8327 2.5 14.0119 2.5 12.9993V5.33268C2.5 5.05654 2.72386 4.83268 3 4.83268Z"
-                          fill="currentColor"
-                        />
-                      </svg>
-                    </div>
-                  </button>
-                )}
+                  {/* End Image Thumbnail */}
+                  {video.endImageUrl && (
+                    <button
+                      type="button"
+                      onClick={() => handleAttachImage(video.endImageUrl!)}
+                      title="Click to use this image"
+                      className="group relative size-6 -rotate-[5deg] cursor-pointer overflow-hidden rounded-md duration-150 outline-none select-none hover:scale-125 hover:rotate-0 focus-visible:scale-125 focus-visible:ring-2 focus-visible:ring-white active:scale-115 lg:size-10 lg:rounded-lg"
+                    >
+                      <Image
+                        src={video.endImageUrl}
+                        alt="End image"
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          className="size-3.5 text-white"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            clipRule="evenodd"
+                            d="M5.16667 2.99935C5.16667 1.98683 5.98748 1.16602 7 1.16602H11.6667C12.6792 1.16602 13.5 1.98683 13.5 2.99935V10.3327C13.5 11.3452 12.6792 12.166 11.6667 12.166H7C5.98748 12.166 5.16667 11.3452 5.16667 10.3327V2.99935ZM7 2.16602C6.53976 2.16602 6.16667 2.53911 6.16667 2.99935V10.3327C6.16667 10.7929 6.53976 11.166 7 11.166H11.6667C12.1269 11.166 12.5 10.7929 12.5 10.3327V2.99935C12.5 2.53911 12.1269 2.16602 11.6667 2.16602H7ZM3 4.83268C3.27614 4.83268 3.5 5.05654 3.5 5.33268V12.9993C3.5 13.4596 3.8731 13.8327 4.33333 13.8327H9C9.27614 13.8327 9.5 14.0565 9.5 14.3327C9.5 14.6088 9.27614 14.8327 9 14.8327H4.33333C3.32081 14.8327 2.5 14.0119 2.5 12.9993V5.33268C2.5 5.05654 2.72386 4.83268 3 4.83268Z"
+                            fill="currentColor"
+                          />
+                        </svg>
+                      </div>
+                    </button>
+                  )}
               </div>
 
               {/* Settings Badges */}
@@ -450,9 +464,9 @@ const VideoResultCard = memo(function VideoResultCard({
                 <button
                   type="button"
                   role="presentation"
-                  className="flex cursor-default items-center gap-1 rounded-lg bg-zinc-800 py-1 pr-2.5 pl-1.5 text-xs font-semibold text-white hover:bg-zinc-800 hover:opacity-100 hover:brightness-100"
+                  className="flex cursor-default items-center gap-1 rounded-lg bg-white/10 py-1 pr-2.5 pl-1.5 text-xs font-semibold text-white hover:bg-white/10 hover:opacity-100 hover:brightness-100"
                 >
-                  <span className="size-3.5 text-zinc-500">
+                  <span className="size-3.5 text-zinc-400">
                     <ResolutionIcon />
                   </span>
                   {video.resolution || "1080p"}
@@ -462,9 +476,9 @@ const VideoResultCard = memo(function VideoResultCard({
                 <button
                   type="button"
                   role="presentation"
-                  className="flex cursor-default items-center gap-1 rounded-lg bg-zinc-800 py-1 pr-2.5 pl-1.5 text-xs font-semibold text-white hover:bg-zinc-800 hover:opacity-100 hover:brightness-100"
+                  className="flex cursor-default items-center gap-1 rounded-lg bg-white/10 py-1 pr-2.5 pl-1.5 text-xs font-semibold text-white hover:bg-white/10 hover:opacity-100 hover:brightness-100"
                 >
-                  <span className="size-3.5 text-zinc-500">
+                  <span className="size-3.5 text-zinc-400">
                     <ClockIcon />
                   </span>
                   {video.duration}s
@@ -472,7 +486,7 @@ const VideoResultCard = memo(function VideoResultCard({
               </div>
 
               {/* Date - shows when not hovering */}
-              <span className="pointer-events-none absolute bottom-4.5 left-4 text-xs text-zinc-500 transition-opacity duration-400 group-hover/card:opacity-0">
+              <span className="pointer-events-none absolute bottom-4.5 left-4 text-xs text-zinc-400 transition-opacity duration-400 group-hover/card:opacity-0">
                 {formattedDate}
               </span>
 
@@ -482,7 +496,7 @@ const VideoResultCard = memo(function VideoResultCard({
                 <button
                   type="button"
                   onClick={onRerun}
-                  className="flex cursor-pointer items-center justify-center gap-1 px-1.5 py-1 text-white/70 transition hover:text-white"
+                  className="flex cursor-pointer items-center justify-center gap-1 px-1.5 py-1 text-white/90 transition hover:text-white"
                 >
                   <svg
                     className="[&_path]:stroke-[3px]"
@@ -508,14 +522,14 @@ const VideoResultCard = memo(function VideoResultCard({
                   <button
                     type="button"
                     onClick={onCopy}
-                    className="px-1.5 py-1 text-white/70 transition hover:text-white [&_path]:stroke-[3px]"
+                    className="px-1.5 py-1 text-white/90 transition hover:text-white [&_path]:stroke-[3px]"
                   >
                     <CopyIcon />
                   </button>
                   <button
                     type="button"
                     onClick={onDelete}
-                    className="px-1.5 py-1 text-white/70 transition hover:text-red-400 [&_path]:stroke-[3px]"
+                    className="px-1.5 py-1 text-white/90 transition hover:text-red-400 [&_path]:stroke-[3px]"
                   >
                     <TrashIcon />
                   </button>

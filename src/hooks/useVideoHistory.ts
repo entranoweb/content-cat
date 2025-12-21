@@ -17,8 +17,8 @@ export function useVideoHistory() {
   const fetchVideos = useCallback(async (cursor?: string) => {
     try {
       const url = cursor
-        ? `/api/videos?cursor=${cursor}&limit=20`
-        : "/api/videos?limit=20";
+        ? `/api/videos?cursor=${cursor}&limit=8`
+        : "/api/videos?limit=8";
       const response = await apiFetch(url, { timeout: 15000 });
       if (response.ok) {
         const result = await response.json();

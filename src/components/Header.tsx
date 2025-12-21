@@ -71,14 +71,14 @@ export default function Header() {
               <Link
                 key={item.label}
                 href={item.href}
-                className="text-base font-semibold text-gray-300 transition-colors duration-300 hover:text-cyan-400"
+                className="text-base font-semibold text-white transition-colors duration-300 hover:text-pink-400"
               >
                 {item.label}
               </Link>
             ))}
             <Link
               href="/assets"
-              className="hidden md:grid grid-flow-col items-center justify-center gap-1 pl-2 pr-3 py-1.5 rounded-lg border border-zinc-700 bg-zinc-800 text-white transition-all hover:bg-zinc-600 hover:border-zinc-500"
+              className="hidden md:grid grid-flow-col items-center justify-center gap-1 pl-2 pr-3 py-1.5 rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm text-white transition-all hover:bg-white/10 hover:border-white/20"
             >
               <div className="grid items-center justify-center size-6">
                 <FolderIcon />
@@ -92,7 +92,7 @@ export default function Header() {
         <div className="flex items-center gap-4">
           <button
             onClick={() => setIsApiKeysModalOpen(true)}
-            className="text-base font-semibold text-gray-300 transition-colors duration-300 hover:text-cyan-400"
+            className="text-base font-semibold text-white transition-colors duration-300 hover:text-pink-400"
           >
             API Keys
           </button>

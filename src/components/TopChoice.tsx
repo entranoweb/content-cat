@@ -198,13 +198,13 @@ export default function TopChoice() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="font-heading text-2xl text-white">QUICK TOOLS</h2>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-zinc-300">
             Powerful AI enhancements at your fingertips
           </p>
         </div>
         <Link
           href="/tools"
-          className="flex items-center gap-2 text-sm text-gray-300 transition-colors duration-300 hover:text-cyan-400"
+          className="flex items-center gap-2 text-sm text-white transition-colors duration-300 hover:text-pink-400"
         >
           See all
           <span>→</span>
@@ -215,9 +215,9 @@ export default function TopChoice() {
           <Link
             key={card.title}
             href={card.href}
-            className="group h-56 w-[17%] min-w-[160px] flex-shrink-0 overflow-hidden rounded-2xl border border-zinc-700/50 bg-zinc-900 transition-colors duration-300 hover:bg-zinc-800"
+            className="group h-56 w-[17%] min-w-[160px] flex-shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl transition-colors duration-300 hover:bg-black/50 hover:border-white/20"
           >
-            <div className="relative h-40 w-full overflow-hidden bg-zinc-800">
+            <div className="relative h-40 w-full overflow-hidden bg-black/20">
               {card.imageAfter ? (
                 <AnimatedCompareSlider
                   image={card.image}
@@ -242,14 +242,14 @@ export default function TopChoice() {
             </div>
             <div className="flex h-16 items-start justify-between gap-2 p-3">
               <div className="min-w-0 flex-1">
-                <h4 className="truncate text-base font-medium text-white transition-colors duration-300 group-hover:text-cyan-400">
+                <h4 className="truncate text-base font-medium text-white transition-colors duration-300 group-hover:text-pink-400">
                   {card.title}
                 </h4>
-                <p className="truncate text-xs text-gray-400">
+                <p className="truncate text-xs text-zinc-300">
                   {card.description}
                 </p>
               </div>
-              <span className="flex-shrink-0 text-lg text-gray-400">→</span>
+              <span className="flex-shrink-0 text-lg text-zinc-300">→</span>
             </div>
           </Link>
         ))}

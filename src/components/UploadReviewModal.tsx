@@ -58,7 +58,7 @@ function getCountRating(count: number): {
   } else {
     return {
       label: "Excellent",
-      color: "text-cyan-400",
+      color: "text-pink-400",
       gradientFrom: "rgb(73,194,140)",
       gradientTo: "rgb(209,254,23)",
     };
@@ -271,13 +271,13 @@ export default function UploadReviewModal({
       onClick={onClose}
     >
       <div
-        className={`mx-4 grid h-[90vh] max-h-[700px] w-full max-w-[68rem] grid-rows-[auto_1fr_auto] gap-4 rounded-3xl border border-zinc-700/50 bg-zinc-900 transition-all duration-300 ${
+        className={`mx-4 grid h-[90vh] max-h-[700px] w-full max-w-[68rem] grid-rows-[auto_1fr_auto] gap-4 rounded-3xl border border-white/10 bg-black/60 backdrop-blur-xl transition-all duration-300 ${
           isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0"
         }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Upload More Button */}
-        <label className="grid w-full cursor-pointer rounded-t-3xl bg-zinc-800/50 p-3 text-center text-gray-400 transition hover:bg-zinc-800">
+        <label className="grid w-full cursor-pointer rounded-t-3xl bg-white/5 p-3 text-center text-zinc-400 transition hover:bg-white/10">
           <input
             multiple
             className="sr-only"
@@ -287,7 +287,7 @@ export default function UploadReviewModal({
           />
           <div className="grid justify-center rounded-xl border border-dashed border-transparent p-5">
             <div className="flex items-center justify-center">
-              <span className="inline-grid h-12 grid-flow-col items-center justify-center gap-1.5 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 text-sm font-medium text-cyan-400 backdrop-blur-sm transition hover:bg-cyan-400/20">
+              <span className="inline-grid h-12 grid-flow-col items-center justify-center gap-1.5 rounded-xl border border-pink-400/20 bg-pink-400/10 px-3 text-sm font-medium text-pink-400 backdrop-blur-sm transition hover:bg-pink-400/20">
                 <ImageUploadSparkleIcon />
                 Upload images
               </span>
@@ -303,7 +303,7 @@ export default function UploadReviewModal({
                 <button
                   type="button"
                   onClick={() => handleRemoveImage(img.id)}
-                  className="absolute -top-1 -right-1 z-10 grid h-6 w-6 items-center justify-center rounded-lg border border-zinc-600 bg-zinc-800 text-white transition hover:bg-zinc-700 lg:opacity-0 lg:group-hover:opacity-100"
+                  className="absolute -top-1 -right-1 z-10 grid h-6 w-6 items-center justify-center rounded-lg border border-white/20 bg-black/60 text-white transition hover:bg-white/20 lg:opacity-0 lg:group-hover:opacity-100"
                 >
                   <CloseIcon />
                 </button>
@@ -328,14 +328,14 @@ export default function UploadReviewModal({
         {/* Bottom Form */}
         <form
           onSubmit={handleSubmit}
-          className="sticky bottom-4 z-10 grid grid-cols-12 grid-rows-[auto_4rem] gap-2 rounded-2xl border border-zinc-700/50 bg-[rgba(19,19,19,0.9)] p-3 backdrop-blur-lg md:bottom-8 lg:grid-rows-1"
+          className="sticky bottom-4 z-10 grid grid-cols-12 grid-rows-[auto_4rem] gap-2 rounded-2xl border border-white/10 bg-black/80 p-3 backdrop-blur-xl md:bottom-8 lg:grid-rows-1"
         >
           {/* Stats Section */}
           <div className="col-span-12 flex items-center lg:col-span-7">
             {/* Images Count */}
-            <div className="w-full items-center rounded-xl border border-zinc-700/50 px-3 py-3 md:px-4">
+            <div className="w-full items-center rounded-xl border border-white/10 px-3 py-3 md:px-4">
               <div className="grid grid-flow-row-dense auto-rows-min items-center md:grid-cols-[1fr_auto]">
-                <p className="truncate text-xs text-gray-400 md:order-1 md:text-sm">
+                <p className="truncate text-xs text-zinc-400 md:order-1 md:text-sm">
                   Images count
                 </p>
                 <div className="grid grid-cols-[auto_1fr] items-center gap-1 md:gap-3">
@@ -344,7 +344,7 @@ export default function UploadReviewModal({
                   >
                     {countRating.label}
                   </p>
-                  <p className="truncate text-xs text-gray-400 md:text-sm">
+                  <p className="truncate text-xs text-zinc-400 md:text-sm">
                     {imageCount} of {MAX_IMAGES}
                   </p>
                 </div>
@@ -366,8 +366,8 @@ export default function UploadReviewModal({
 
           {/* Name Input and Generate Button */}
           <div className="col-span-12 grid grid-cols-12 gap-2 lg:col-span-5">
-            <label className="col-span-6 flex flex-col justify-center gap-1 rounded-xl border border-zinc-700/50 px-3 lg:col-span-7">
-              <span className="h-4 text-xs text-gray-400 md:text-sm">
+            <label className="col-span-6 flex flex-col justify-center gap-1 rounded-xl border border-white/10 px-3 lg:col-span-7">
+              <span className="h-4 text-xs text-zinc-400 md:text-sm">
                 Enter name
               </span>
               <input
@@ -392,7 +392,7 @@ export default function UploadReviewModal({
                 className={`relative z-10 inline-grid h-full w-full grid-flow-col items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium transition-all duration-300 ${
                   isLoading
                     ? "bg-zinc-800 text-white"
-                    : "border border-cyan-400 bg-cyan-400 text-black hover:bg-cyan-500 disabled:cursor-not-allowed disabled:border-zinc-600 disabled:bg-zinc-700 disabled:text-zinc-400"
+                    : "border border-pink-400 bg-pink-400 text-black hover:bg-pink-500 disabled:cursor-not-allowed disabled:border-zinc-600 disabled:bg-zinc-700 disabled:text-zinc-400"
                 }`}
               >
                 {isLoading ? (

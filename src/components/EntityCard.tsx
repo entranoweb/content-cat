@@ -18,7 +18,7 @@ export default function EntityCard({
 }: EntityCardProps) {
   return (
     <div className="group relative">
-      <div className="relative h-72 w-48 overflow-hidden bg-zinc-800">
+      <div className="relative h-72 w-48 overflow-hidden rounded-xl border border-white/10 bg-black/40">
         {entity.thumbnailUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -27,7 +27,7 @@ export default function EntityCard({
             className="h-full w-full object-cover transition-all duration-300 ease-out group-hover:brightness-50"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-gray-500">
+          <div className="flex h-full w-full items-center justify-center text-zinc-400">
             No image
           </div>
         )}
@@ -37,7 +37,7 @@ export default function EntityCard({
         <button
           type="button"
           onClick={() => onGenerate(entity.id)}
-          className="absolute top-1/2 left-1/2 inline-grid h-12 -translate-x-1/2 -translate-y-1/2 grid-flow-col items-center justify-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-4 text-sm font-medium text-cyan-400 opacity-0 backdrop-blur-sm transition-all duration-300 ease-out group-hover:opacity-100 hover:bg-cyan-400/20"
+          className="absolute top-1/2 left-1/2 inline-grid h-12 -translate-x-1/2 -translate-y-1/2 grid-flow-col items-center justify-center gap-2 rounded-xl border border-pink-400/20 bg-pink-400/10 px-4 text-sm font-medium text-pink-400 opacity-0 backdrop-blur-sm transition-all duration-300 ease-out group-hover:opacity-100 hover:bg-pink-400/20"
         >
           <SparkleIcon className="size-5" />
           Generate
@@ -65,7 +65,7 @@ export default function EntityCard({
           <p className="font-heading truncate text-xs text-white uppercase">
             {entity.name}
           </p>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-zinc-300">
             {entity.referenceImages.length} images
           </p>
         </div>

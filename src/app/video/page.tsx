@@ -11,24 +11,27 @@ import {
   FolderIcon,
   BookIcon,
 } from "@/components/video";
-import { useVideoGeneration, useVideoHistory, useImageUpload } from "@/hooks";
+import { useVideoGeneration, useVideos, useImageUpload } from "@/hooks";
 import type { VideoModelId } from "@/lib/fal";
 
 export default function VideoPage() {
   const [showPresetSelector, setShowPresetSelector] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
-  // Video history management
+  // Video history management (SWR-cached)
   const {
-    generatedVideos,
-    isLoadingVideos,
+    videos: generatedVideos,
+    isLoading: isLoadingVideos,
     showResults,
     setShowResults,
+    hasMore,
+    isLoadingMore,
     addVideo,
-    handleDeleteVideo,
-    handleDownloadVideo,
-    handleCopyPrompt,
-  } = useVideoHistory();
+    loadMore: loadMoreVideos,
+    deleteVideo,
+    downloadVideo,
+    copyPrompt,
+  } = useVideos();
 
   // Video generation state
   const {
@@ -98,13 +101,13 @@ export default function VideoPage() {
 
   const handleConfirmDelete = () => {
     if (deleteConfirmId) {
-      handleDeleteVideo(deleteConfirmId);
+      deleteVideo(deleteConfirmId);
       setDeleteConfirmId(null);
     }
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[#0a0a0a]">
+    <div className="relative flex h-screen flex-col overflow-hidden">
       <Header />
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
@@ -142,10 +145,10 @@ export default function VideoPage() {
             <>
               {/* Shared Tabs with sliding indicator */}
               <div className="z-10 mb-4 w-fit">
-                <nav className="relative flex gap-1 rounded-xl border border-zinc-800 bg-zinc-900 p-1">
+                <nav className="relative flex gap-1 rounded-xl border border-white/10 bg-black/40 p-1 backdrop-blur-xl">
                   {/* Sliding indicator */}
                   <div
-                    className={`absolute top-1 bottom-1 left-1 w-[120px] rounded-lg border border-zinc-700 bg-white/10 transition-all duration-200 ease-out ${
+                    className={`absolute top-1 bottom-1 left-1 w-[120px] rounded-lg border border-white/10 bg-white/10 transition-all duration-200 ease-out ${
                       showResults || pendingCount > 0
                         ? "translate-x-0"
                         : "translate-x-[124px]"
@@ -156,7 +159,7 @@ export default function VideoPage() {
                     className={`relative z-10 flex w-[120px] items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all duration-200 ${
                       showResults || pendingCount > 0
                         ? "text-white"
-                        : "text-gray-400 hover:text-white"
+                        : "text-zinc-400 hover:text-white"
                     }`}
                   >
                     <FolderIcon />
@@ -166,7 +169,7 @@ export default function VideoPage() {
                     onClick={() => setShowResults(false)}
                     className={`relative z-10 flex w-[120px] items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all duration-200 ${
                       showResults || pendingCount > 0
-                        ? "text-gray-400 hover:text-white"
+                        ? "text-zinc-400 hover:text-white"
                         : "text-white"
                     }`}
                   >
@@ -182,11 +185,14 @@ export default function VideoPage() {
                   videos={generatedVideos}
                   isLoading={isLoadingVideos}
                   pendingCount={pendingCount}
+                  hasMore={hasMore}
+                  isLoadingMore={isLoadingMore}
                   onRerun={handleRerunVideo}
                   onDelete={handleDeleteWithConfirm}
-                  onDownload={handleDownloadVideo}
-                  onCopy={handleCopyPrompt}
+                  onDownload={downloadVideo}
+                  onCopy={copyPrompt}
                   onAttachImages={handleAttachImages}
+                  onLoadMore={loadMoreVideos}
                 />
               ) : (
                 <HowItWorksSection />

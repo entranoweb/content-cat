@@ -57,7 +57,7 @@ export default function UploadModal({
       onClick={onClose}
     >
       <div
-        className={`mx-auto flex w-full max-w-3xl flex-col gap-8 rounded-3xl border border-zinc-700/50 bg-zinc-900 p-6 transition-all duration-300 md:p-8 ${
+        className={`mx-auto flex w-full max-w-3xl flex-col gap-8 rounded-3xl border border-white/10 bg-black/60 p-6 backdrop-blur-xl transition-all duration-300 md:p-8 ${
           isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0"
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -65,14 +65,14 @@ export default function UploadModal({
         {/* Good Photos Section */}
         <section className="grid w-full grid-rows-[auto_1fr] gap-4">
           <div className="grid grid-cols-[auto_1fr] items-start gap-3 px-4">
-            <div className="grid h-8 w-8 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-400">
+            <div className="grid h-8 w-8 items-center justify-center rounded-xl border border-pink-400/20 bg-pink-400/10 text-pink-400">
               <CheckIcon />
             </div>
             <div className="grid grid-flow-row auto-rows-min">
               <p className="font-heading text-sm font-bold text-white uppercase">
                 Upload 6-8 photos for best results
               </p>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-zinc-300">
                 Upload high-quality images. Show different angles, clear facial
                 expressions, and good lighting
               </p>
@@ -84,7 +84,7 @@ export default function UploadModal({
                 key={photo.id}
                 className="relative grid aspect-[0.8] w-24 items-end justify-start gap-3 overflow-hidden rounded-xl border-2 border-white p-2 md:w-full"
               >
-                <div className="absolute inset-0 z-10 bg-gradient-to-t from-cyan-400/50 to-transparent to-50%" />
+                <div className="absolute inset-0 z-10 bg-gradient-to-t from-pink-400/50 to-transparent to-50%" />
                 <Image
                   src={photo.image}
                   alt={`Good reference photo ${photo.id}`}
@@ -92,7 +92,7 @@ export default function UploadModal({
                   sizes="(max-width: 768px) 96px, 20vw"
                   className="object-cover"
                 />
-                <div className="z-20 grid h-6 w-6 items-center justify-center rounded-lg bg-cyan-400 text-black">
+                <div className="z-20 grid h-6 w-6 items-center justify-center rounded-lg bg-pink-400 text-black">
                   <CheckIcon />
                 </div>
               </article>
@@ -110,7 +110,7 @@ export default function UploadModal({
               <p className="font-heading text-sm font-bold text-white uppercase">
                 Avoid These Types of Photos
               </p>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-zinc-300">
                 No duplicates, group shots, pets, nudes, filters, face-covering
                 accessories, or masks
               </p>
@@ -140,7 +140,7 @@ export default function UploadModal({
 
         {/* Upload Button */}
         <div className="flex justify-center">
-          <label className="inline-grid h-12 cursor-pointer grid-flow-col items-center justify-center gap-2 rounded-xl bg-cyan-400 px-6 font-medium text-black transition-all duration-300 hover:bg-cyan-500 md:h-14 md:w-48">
+          <label className="inline-grid h-12 cursor-pointer grid-flow-col items-center justify-center gap-2 rounded-xl bg-pink-400 px-6 font-medium text-black transition-all duration-300 hover:bg-pink-500 md:h-14 md:w-48">
             <UploadIcon />
             Upload images
             <input

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/csrf";
@@ -14,6 +14,7 @@ import {
   type GeneratedImage,
 } from "@/components/image";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
+import { useImages } from "@/hooks";
 
 export default function ImagePage() {
   return (
@@ -25,7 +26,7 @@ export default function ImagePage() {
 
 function ImagePageSkeleton() {
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[#0a0a0a]">
+    <div className="relative flex h-screen flex-col overflow-hidden">
       <Header />
       <div className="flex min-h-0 flex-1 items-center justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -45,8 +46,6 @@ function ImagePageContent() {
   const initialProductId = searchParams.get("productId") || undefined;
   const initialSubModel = initialCharacterId || initialProductId || undefined;
   const [pendingCount, setPendingCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(
     null
@@ -57,49 +56,17 @@ function ImagePageContent() {
   const [editData, setEditData] = useState<{ imageUrl: string } | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-
-  // Fetch images from database with pagination
-  const fetchImages = useCallback(async (cursor?: string) => {
-    try {
-      const url = cursor
-        ? `/api/images?cursor=${cursor}&limit=50`
-        : "/api/images?limit=50";
-      const response = await fetch(url);
-      if (response.ok) {
-        const result = await response.json();
-        if (cursor) {
-          // Append to existing images
-          setGeneratedImages((prev) => [...prev, ...result.data]);
-        } else {
-          // Initial load
-          setGeneratedImages(result.data);
-        }
-        setNextCursor(result.nextCursor);
-        setHasMore(result.hasMore);
-      } else {
-        toast.error("Failed to load images");
-      }
-    } catch {
-      toast.error("Failed to load images");
-    } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
-    }
-  }, []);
-
-  // Load more images when scrolling
-  const loadMoreImages = useCallback(async () => {
-    if (!hasMore || isLoadingMore || !nextCursor) return;
-    setIsLoadingMore(true);
-    await fetchImages(nextCursor);
-  }, [hasMore, isLoadingMore, nextCursor, fetchImages]);
-
-  useEffect(() => {
-    fetchImages();
-  }, [fetchImages]);
+  // Use SWR-powered hook for cached data
+  const {
+    images: generatedImages,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    loadMore: loadMoreImages,
+    addImage,
+    deleteImage,
+    downloadImage: handleDownload,
+  } = useImages();
 
   const toggleSelectImage = (id: string) => {
     setSelectedImages((prev) => {
@@ -113,60 +80,20 @@ function ImagePageContent() {
     });
   };
 
-  const handleDownload = async (url: string, prompt: string) => {
-    let blobUrl: string | null = null;
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        toast.error("Failed to download image");
-        return;
-      }
-      const blob = await response.blob();
-      blobUrl = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = blobUrl;
-      link.download = `${prompt.slice(0, 30).replace(/[^a-z0-9]/gi, "_")}_${Date.now()}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch {
-      toast.error("Failed to download image");
-    } finally {
-      // Always revoke blob URL to prevent memory leaks
-      if (blobUrl) {
-        URL.revokeObjectURL(blobUrl);
-      }
-    }
-  };
-
   const handleDeleteConfirm = async () => {
     if (!deleteConfirmId) return;
     const id = deleteConfirmId;
     setDeleteConfirmId(null);
 
-    // Optimistically update UI
-    setGeneratedImages((prev) => prev.filter((img) => img.id !== id));
+    // Remove from selection
     setSelectedImages((prev) => {
       const newSet = new Set(prev);
       newSet.delete(id);
       return newSet;
     });
 
-    // Delete from database
-    try {
-      const response = await apiFetch(`/api/images/${id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) {
-        toast.error("Failed to delete image");
-        fetchImages(); // Restore state
-      } else {
-        toast.success("Image deleted");
-      }
-    } catch {
-      toast.error("Failed to delete image");
-      fetchImages(); // Restore state
-    }
+    // Delete via hook (handles optimistic update)
+    await deleteImage(id);
   };
 
   const handleDelete = (id: string) => {
@@ -231,7 +158,7 @@ function ImagePageContent() {
               if (saveResponse.ok) {
                 const savedImage = await saveResponse.json();
                 // Add each image immediately as it's generated
-                setGeneratedImages((prev) => [savedImage, ...prev]);
+                addImage(savedImage);
                 successCount++;
               }
             }
@@ -268,7 +195,7 @@ function ImagePageContent() {
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[#0a0a0a]">
+    <div className="relative flex h-screen flex-col overflow-hidden">
       <Header />
       <div className="flex min-h-0 flex-1 flex-col p-4">
         {/* Gallery Grid - scrollable container */}

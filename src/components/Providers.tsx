@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
+import { SWRConfig } from "swr";
 import { PageErrorBoundary } from "./ErrorBoundary";
 
 interface ProvidersProps {
@@ -8,5 +9,16 @@ interface ProvidersProps {
 }
 
 export function Providers({ children }: ProvidersProps) {
-  return <PageErrorBoundary>{children}</PageErrorBoundary>;
+  return (
+    <SWRConfig
+      value={{
+        revalidateOnFocus: false,
+        revalidateOnReconnect: false,
+        dedupingInterval: 10000,
+        keepPreviousData: true,
+      }}
+    >
+      <PageErrorBoundary>{children}</PageErrorBoundary>
+    </SWRConfig>
+  );
 }

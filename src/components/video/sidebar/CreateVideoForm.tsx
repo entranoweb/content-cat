@@ -148,13 +148,13 @@ export default function CreateVideoForm({
           }}
         />
         <figcaption className="absolute bottom-0 left-0 z-10 w-full pr-1.5 pb-3 pl-3">
-          <p className="font-heading w-full truncate text-lg font-bold text-cyan-400 uppercase">
+          <p className="font-heading w-full truncate text-lg font-bold text-pink-400 uppercase">
             {selectedPreset}
           </p>
-          <p className="text-xs text-white/80">{modelConfig.name}</p>
+          <p className="text-xs text-white">{modelConfig.name}</p>
         </figcaption>
         <button
-          className="absolute top-1.5 right-1.5 z-20 flex h-6 items-center gap-1 rounded-lg border border-white/10 bg-black/60 px-2 text-xs text-white backdrop-blur-sm transition-colors hover:bg-cyan-400 hover:text-black"
+          className="absolute top-1.5 right-1.5 z-20 flex h-6 items-center gap-1 rounded-lg border border-white/10 bg-black/60 px-2 text-xs text-white backdrop-blur-sm transition-colors hover:bg-pink-400 hover:text-black"
           onClick={(e) => {
             e.stopPropagation();
             setShowPresetSelector(true);
@@ -194,11 +194,11 @@ export default function CreateVideoForm({
       {/* Audio Toggle - Only show if model supports audio */}
       {modelConfig.supportsAudio && (
         <fieldset>
-          <div className="rounded-xl bg-zinc-800/50 p-3">
+          <div className="rounded-xl border border-white/10 bg-white/5 p-3">
             <div className="flex flex-row items-center justify-between gap-1.5">
               <div className="flex shrink-0 items-center gap-1 text-sm text-white">
                 <span className="font-medium">Audio</span>
-                <button className="text-gray-500">
+                <button className="text-zinc-400">
                   <InfoIcon />
                 </button>
               </div>
@@ -209,7 +209,7 @@ export default function CreateVideoForm({
                   })
                 }
                 className={`relative inline-flex h-6 w-9 shrink-0 cursor-pointer items-center rounded-full transition ${
-                  videoState.audioEnabled ? "bg-cyan-400" : "bg-zinc-700"
+                  videoState.audioEnabled ? "bg-pink-400" : "bg-zinc-700"
                 }`}
               >
                 <span
@@ -228,10 +228,10 @@ export default function CreateVideoForm({
         <button
           ref={modelTriggerRef}
           onClick={() => setShowModelDropdown(!showModelDropdown)}
-          className="grid w-full grid-cols-[1fr_auto] items-center gap-2 rounded-xl bg-zinc-800/50 px-3 py-2.5 text-left transition hover:bg-zinc-700/50"
+          className="grid w-full grid-cols-[1fr_auto] items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-left transition hover:bg-white/10"
         >
           <div className="grid">
-            <span className="text-xs font-medium whitespace-nowrap text-gray-500">
+            <span className="text-xs font-medium whitespace-nowrap text-zinc-300">
               Model
             </span>
             <div className="text-sm font-medium text-white">
@@ -258,10 +258,10 @@ export default function CreateVideoForm({
             <button
               ref={durationTriggerRef}
               onClick={() => setShowDurationDropdown(!showDurationDropdown)}
-              className="grid w-full grid-cols-[1fr_auto] items-center gap-2 rounded-xl bg-zinc-800/50 px-3 py-2.5 text-left transition hover:bg-zinc-700/50"
+              className="grid w-full grid-cols-[1fr_auto] items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-left transition hover:bg-white/10"
             >
               <div className="grid">
-                <span className="text-xs font-medium whitespace-nowrap text-gray-500">
+                <span className="text-xs font-medium whitespace-nowrap text-zinc-300">
                   Duration
                 </span>
                 <div className="text-sm font-medium text-white">
@@ -290,10 +290,10 @@ export default function CreateVideoForm({
             <button
               ref={aspectTriggerRef}
               onClick={() => setShowAspectDropdown(!showAspectDropdown)}
-              className="grid w-full grid-cols-[1fr_auto] items-center gap-2 rounded-xl bg-zinc-800/50 px-3 py-2.5 text-left transition hover:bg-zinc-700/50"
+              className="grid w-full grid-cols-[1fr_auto] items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-left transition hover:bg-white/10"
             >
               <div className="grid">
-                <span className="text-xs font-medium whitespace-nowrap text-gray-500">
+                <span className="text-xs font-medium whitespace-nowrap text-zinc-300">
                   Aspect Ratio
                 </span>
                 <div className="text-sm font-medium text-white">
@@ -325,10 +325,10 @@ export default function CreateVideoForm({
           <button
             ref={resolutionTriggerRef}
             onClick={() => setShowResolutionDropdown(!showResolutionDropdown)}
-            className="grid w-full grid-cols-[1fr_auto] items-center gap-2 rounded-xl bg-zinc-800/50 px-3 py-2.5 text-left transition hover:bg-zinc-700/50"
+            className="grid w-full grid-cols-[1fr_auto] items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-left transition hover:bg-white/10"
           >
             <div className="grid">
-              <span className="text-xs font-medium whitespace-nowrap text-gray-500">
+              <span className="text-xs font-medium whitespace-nowrap text-zinc-300">
                 Resolution
               </span>
               <div className="text-sm font-medium text-white">
@@ -359,10 +359,10 @@ export default function CreateVideoForm({
           <button
             ref={specialFxTriggerRef}
             onClick={() => setShowSpecialFxDropdown(!showSpecialFxDropdown)}
-            className="grid w-full grid-cols-[1fr_auto] items-center gap-2 rounded-xl bg-zinc-800/50 px-3 py-2.5 text-left transition hover:bg-zinc-700/50"
+            className="grid w-full grid-cols-[1fr_auto] items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-left transition hover:bg-white/10"
           >
             <div className="grid">
-              <span className="text-xs font-medium whitespace-nowrap text-gray-500">
+              <span className="text-xs font-medium whitespace-nowrap text-zinc-300">
                 Special FX
               </span>
               <div className="text-sm font-medium text-white">

@@ -48,7 +48,7 @@ export default function SelectDropdown({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex h-10 items-center justify-between gap-2 rounded-xl border border-zinc-700/50 bg-zinc-800/50 px-3 text-sm text-white transition hover:bg-zinc-700/50"
+        className="flex h-10 items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white transition hover:bg-white/10"
       >
         <div className="flex items-center gap-2">
           {icon}
@@ -57,7 +57,7 @@ export default function SelectDropdown({
         <ChevronDownIcon />
       </button>
       {isOpen && (
-        <div className="hide-scrollbar absolute bottom-full left-0 z-50 mb-2 flex max-h-72 min-w-[240px] flex-col overflow-y-auto rounded-xl border border-zinc-700/50 bg-zinc-900 px-1 pt-2 pb-2 shadow-lg">
+        <div className="hide-scrollbar absolute bottom-full left-0 z-50 mb-2 flex max-h-72 min-w-[240px] flex-col overflow-y-auto rounded-xl border border-white/10 bg-black/80 px-1 pt-2 pb-2 shadow-lg backdrop-blur-xl">
           {options.map((option) => {
             const isSelected = option.value === value;
             const optionIcon = showIcons

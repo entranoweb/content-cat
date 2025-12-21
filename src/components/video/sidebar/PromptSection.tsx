@@ -31,11 +31,11 @@ export default function PromptSection({
   }, []);
 
   return (
-    <fieldset className="rounded-xl bg-zinc-800/50">
+    <fieldset className="rounded-xl border border-white/10 bg-white/5">
       <label className="relative block p-3 pb-1">
-        <span className="mb-1 text-sm font-medium text-gray-500">
+        <span className="mb-1 text-sm font-medium text-zinc-300">
           Prompt
-          <span className="ml-2 text-xs text-gray-600">
+          <span className="ml-2 text-xs text-zinc-400">
             {prompt.length}/{maxLength}
           </span>
         </span>
@@ -44,7 +44,7 @@ export default function PromptSection({
           value={prompt}
           onChange={(e) => onPromptChange(e.target.value)}
           onInput={handleTextareaInput}
-          className="hide-scrollbar w-full resize-none overflow-y-auto border-none bg-transparent text-sm text-white placeholder:text-gray-500 focus:outline-none"
+          className="hide-scrollbar w-full resize-none overflow-y-auto border-none bg-transparent text-sm text-white placeholder:text-zinc-400 focus:outline-none"
           placeholder="Describe the scene you imagine, with details."
           style={{ height: "60px", maxHeight: "120px" }}
           maxLength={maxLength}

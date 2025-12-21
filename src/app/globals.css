@@ -73,9 +73,9 @@ select,
   background: linear-gradient(
     90deg,
     #ffffff 0%,
-    #22d3ee 25%,
-    #00ffff 50%,
-    #22d3ee 75%,
+    #f472b6 25%,
+    #fb7185 50%,
+    #f472b6 75%,
     #ffffff 100%
   );
   background-size: 200% 100%;
@@ -136,6 +136,12 @@ select,
   animation: shimmer 1.5s ease-in-out infinite;
 }
 
+/* Performance: Skip rendering off-screen grid items */
+.grid-item-perf {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1px;
+}
+
 .skeleton-loader::after {
   content: "";
   position: absolute;
@@ -153,7 +159,7 @@ select,
 .spinning-border {
   border-radius: 0.75rem;
   padding: 2px;
-  background: conic-gradient(from var(--angle), #22d3ee, transparent 80%);
+  background: conic-gradient(from var(--angle), #f472b6, transparent 80%);
   animation: spin-border 1s linear infinite;
 }
 
@@ -189,23 +195,23 @@ select,
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background-color: #22d3ee;
+  background-color: #f472b6;
   color: black;
   font-weight: 600;
   border-radius: 0.5rem;
-  box-shadow: 0 4px 0 0 #0e7490;
+  box-shadow: 0 4px 0 0 #be185d;
   transition: all 150ms ease;
   cursor: pointer;
 }
 
 .btn-primary:hover {
-  background-color: #06b6d4;
-  box-shadow: 0 4px 0 0 #0c6478;
+  background-color: #ec4899;
+  box-shadow: 0 4px 0 0 #9d174d;
 }
 
 .btn-primary:active {
   transform: translateY(2px);
-  box-shadow: 0 2px 0 0 #0e7490;
+  box-shadow: 0 2px 0 0 #be185d;
 }
 
 .btn-primary:disabled {
@@ -219,24 +225,24 @@ select,
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background-color: #22d3ee;
+  background-color: #f472b6;
   color: black;
   font-size: 0.875rem;
   font-weight: 600;
   border-radius: 0.5rem;
-  box-shadow: 0 3px 0 0 #0e7490;
+  box-shadow: 0 3px 0 0 #be185d;
   transition: all 150ms ease;
   cursor: pointer;
 }
 
 .btn-primary-sm:hover {
-  background-color: #06b6d4;
-  box-shadow: 0 3px 0 0 #0c6478;
+  background-color: #ec4899;
+  box-shadow: 0 3px 0 0 #9d174d;
 }
 
 .btn-primary-sm:active {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 0 #0e7490;
+  box-shadow: 0 1px 0 0 #be185d;
 }
 
 /* Orange stop button - similar style to btn-primary but with orange neon glow */

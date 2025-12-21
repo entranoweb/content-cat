@@ -118,7 +118,7 @@ export default function EntityManagementPage({
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[#0a0a0a]">
+    <div className="relative flex h-screen flex-col overflow-hidden">
       <Header />
       <UploadModal
         isOpen={isUploadModalOpen}
@@ -164,8 +164,8 @@ export default function EntityManagementPage({
         {/* Title Section */}
         <div className="text-center">
           <h1 className="font-heading text-4xl text-white">{title}</h1>
-          <p className="mt-3 text-sm text-gray-400">{subtitle}</p>
-          <p className="text-sm text-gray-400">{subtitle2}</p>
+          <p className="mt-3 text-sm text-zinc-300">{subtitle}</p>
+          <p className="text-sm text-zinc-300">{subtitle2}</p>
         </div>
 
         {/* CTA Button */}

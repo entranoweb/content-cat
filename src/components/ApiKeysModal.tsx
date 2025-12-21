@@ -243,7 +243,7 @@ export default function ApiKeysModal({ isOpen, onClose }: ApiKeysModalProps) {
       onClick={onClose}
     >
       <div
-        className={`mx-auto flex w-full max-w-md flex-col gap-6 rounded-2xl border border-zinc-700 bg-zinc-800 p-6 shadow-xl transition-all duration-300 ${
+        className={`mx-auto flex w-full max-w-md flex-col gap-6 rounded-2xl border border-white/10 bg-black/60 p-6 shadow-xl backdrop-blur-xl transition-all duration-300 ${
           isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0"
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -251,19 +251,19 @@ export default function ApiKeysModal({ isOpen, onClose }: ApiKeysModalProps) {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-700 text-white">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white">
               <KeyIcon />
             </div>
             <div>
               <h2 className="text-sm font-medium text-white">API Keys</h2>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-zinc-300">
                 Manage your API credentials
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-xl text-gray-400 transition hover:bg-white/5 hover:text-white"
+            className="flex h-8 w-8 items-center justify-center rounded-xl text-zinc-300 transition hover:bg-white/5 hover:text-white"
           >
             <CloseIcon />
           </button>
@@ -272,27 +272,27 @@ export default function ApiKeysModal({ isOpen, onClose }: ApiKeysModalProps) {
         {/* Existing Keys */}
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
-            <div className="size-6 animate-spin rounded-full border-2 border-zinc-600 border-t-cyan-400" />
+            <div className="size-6 animate-spin rounded-full border-2 border-zinc-600 border-t-pink-400" />
           </div>
         ) : apiKeys.length > 0 ? (
           <div className="space-y-3">
-            <p className="text-sm text-gray-400">Saved Keys</p>
+            <p className="text-sm text-zinc-300">Saved Keys</p>
             {apiKeys.map((apiKey) => (
               <div
                 key={apiKey.id}
-                className="flex items-center justify-between rounded-2xl border border-zinc-700 bg-zinc-800 p-3"
+                className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-3"
               >
                 <div>
                   <p className="text-sm font-medium text-white">
                     {apiKey.name}
                   </p>
-                  <p className="font-mono text-xs text-gray-500">
+                  <p className="font-mono text-xs text-zinc-400">
                     {apiKey.key}
                   </p>
                 </div>
                 <button
                   onClick={() => handleDelete(apiKey.service)}
-                  className="flex h-8 w-8 items-center justify-center rounded-xl text-gray-400 transition hover:bg-white/5 hover:text-red-400"
+                  className="flex h-8 w-8 items-center justify-center rounded-xl text-zinc-300 transition hover:bg-white/5 hover:text-red-400"
                   title="Delete"
                 >
                   <TrashIcon />
@@ -304,17 +304,17 @@ export default function ApiKeysModal({ isOpen, onClose }: ApiKeysModalProps) {
 
         {/* Add New Key */}
         <div className="space-y-4">
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-zinc-300">
             {apiKeys.length > 0 ? "Update Key" : "Add Key"}
           </p>
 
           {/* Service Selector */}
           <div>
-            <label className="mb-2 block text-xs text-gray-500">Service</label>
+            <label className="mb-2 block text-xs text-zinc-400">Service</label>
             <button
               ref={serviceDropdownRef}
               onClick={() => setIsServiceDropdownOpen(!isServiceDropdownOpen)}
-              className="flex w-full items-center justify-between rounded-2xl border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-left text-sm text-white transition outline-none hover:bg-white/5"
+              className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-left text-sm text-white transition outline-none hover:bg-white/10"
             >
               <span>
                 {SERVICES.find((s) => s.id === selectedService)?.name} -{" "}
@@ -331,7 +331,7 @@ export default function ApiKeysModal({ isOpen, onClose }: ApiKeysModalProps) {
                     left: dropdownPosition.left,
                     width: dropdownPosition.width,
                   }}
-                  className="fixed z-[9999] rounded-2xl border border-zinc-700 bg-zinc-800 p-2 shadow-xl"
+                  className="fixed z-[9999] rounded-2xl border border-white/10 bg-black/80 p-2 shadow-xl backdrop-blur-xl"
                 >
                   <div className="flex flex-col gap-1">
                     {SERVICES.map((service) => (
@@ -349,7 +349,7 @@ export default function ApiKeysModal({ isOpen, onClose }: ApiKeysModalProps) {
                           <span className="text-sm font-medium text-white">
                             {service.name}
                           </span>
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-zinc-300">
                             {service.description}
                           </span>
                         </div>
@@ -359,7 +359,7 @@ export default function ApiKeysModal({ isOpen, onClose }: ApiKeysModalProps) {
                             height="16"
                             viewBox="0 0 16 16"
                             fill="currentColor"
-                            className="text-cyan-400"
+                            className="text-pink-400"
                           >
                             <path d="M13.7071 4.29289C14.0976 4.68342 14.0976 5.31658 13.7071 5.70711L6.70711 12.7071C6.31658 13.0976 5.68342 13.0976 5.29289 12.7071L2.29289 9.70711C1.90237 9.31658 1.90237 8.68342 2.29289 8.29289C2.68342 7.90237 3.31658 7.90237 3.70711 8.29289L6 10.5858L12.2929 4.29289C12.6834 3.90237 13.3166 3.90237 13.7071 4.29289Z" />
                           </svg>
@@ -374,23 +374,23 @@ export default function ApiKeysModal({ isOpen, onClose }: ApiKeysModalProps) {
 
           {/* API Key Input */}
           <div>
-            <label className="mb-2 block text-xs text-gray-500">API Key</label>
+            <label className="mb-2 block text-xs text-zinc-400">API Key</label>
             <input
               type="password"
               value={newKey}
               onChange={(e) => setNewKey(e.target.value)}
               placeholder="Enter your API key..."
-              className={`w-full rounded-2xl border bg-zinc-800 px-4 py-2.5 text-sm text-white placeholder-gray-500 transition outline-none hover:bg-white/5 focus:bg-white/5 ${
+              className={`w-full rounded-2xl border bg-white/5 px-4 py-2.5 text-sm text-white placeholder-zinc-400 transition outline-none hover:bg-white/10 focus:bg-white/10 ${
                 newKey && !isKeyFormatValid
                   ? "border-red-500/50"
-                  : "border-zinc-700"
+                  : "border-white/10"
               }`}
             />
             {newKey && !isKeyFormatValid && keyValidation.error && (
               <p className="mt-2 text-xs text-red-400">{keyValidation.error}</p>
             )}
             {!newKey && API_KEY_VALIDATORS[selectedService] && (
-              <p className="mt-2 text-xs text-gray-500">
+              <p className="mt-2 text-xs text-zinc-400">
                 Format: {API_KEY_VALIDATORS[selectedService].example}
               </p>
             )}
@@ -401,14 +401,14 @@ export default function ApiKeysModal({ isOpen, onClose }: ApiKeysModalProps) {
             <button
               onClick={handleValidate}
               disabled={!isKeyFormatValid || isValidating}
-              className="flex h-10 flex-1 items-center justify-center rounded-xl border border-zinc-700/50 bg-zinc-800/50 text-sm font-medium text-white transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-10 flex-1 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-sm font-medium text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isValidating ? "Validating..." : "Validate"}
             </button>
             <button
               onClick={handleSave}
               disabled={!isKeyFormatValid || isSaving}
-              className="flex h-10 flex-1 items-center justify-center rounded-xl bg-cyan-400 text-sm font-semibold text-black transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-10 flex-1 items-center justify-center rounded-xl bg-pink-400 text-sm font-semibold text-black transition hover:bg-pink-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSaving ? "Saving..." : "Save"}
             </button>

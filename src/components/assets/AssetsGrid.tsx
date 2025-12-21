@@ -1,39 +1,21 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import Image from "next/image";
 import { toast } from "sonner";
 import JSZip from "jszip";
-import { apiFetch } from "@/lib/csrf";
 import type { AssetTab } from "./AssetsSidebar";
-
-interface UploadedAsset {
-  id: string;
-  url: string;
-  filename: string;
-  category: string;
-  type: "image" | "video" | "other";
-  sizeBytes: number;
-  createdAt: string;
-}
-
-interface GeneratedAsset {
-  id: string;
-  url: string;
-  thumbnailUrl?: string | null;
-  prompt: string;
-  type: "image" | "video";
-  aspectRatio?: string;
-  createdAt: string;
-}
-
-type Asset = UploadedAsset | GeneratedAsset;
-
-interface DateGroup<T extends Asset> {
-  date: string;
-  dateLabel: string;
-  assets: T[];
-}
+import {
+  useAssets,
+  type UploadedAsset,
+  type GeneratedAsset,
+} from "@/hooks";
 
 const CheckIcon = ({ dark = false }: { dark?: boolean }) => (
   <svg
@@ -50,44 +32,13 @@ const CheckIcon = ({ dark = false }: { dark?: boolean }) => (
   </svg>
 );
 
-function formatDateLabel(dateString: string): string {
-  const date = new Date(dateString);
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-
-  if (date.toDateString() === today.toDateString()) {
-    return "Today";
-  }
-  if (date.toDateString() === yesterday.toDateString()) {
-    return "Yesterday";
-  }
-
-  return date.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function groupAssetsByDate<T extends Asset>(assets: T[]): DateGroup<T>[] {
-  const groups: Record<string, T[]> = {};
-
-  assets.forEach((asset) => {
-    const date = new Date(asset.createdAt).toDateString();
-    if (!groups[date]) {
-      groups[date] = [];
-    }
-    groups[date].push(asset);
-  });
-
-  return Object.entries(groups)
-    .map(([date, assets]) => ({
-      date,
-      dateLabel: formatDateLabel(date),
-      assets,
-    }))
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+// Skeleton component for loading state
+function AssetSkeleton() {
+  return (
+    <div className="aspect-square rounded-2xl border border-white/10 bg-black/40 overflow-hidden">
+      <div className="skeleton-loader size-full" />
+    </div>
+  );
 }
 
 interface AssetsGridProps {
@@ -101,102 +52,66 @@ export default function AssetsGrid({
   searchQuery,
   onCountChange,
 }: AssetsGridProps) {
-  const [uploadedAssets, setUploadedAssets] = useState<UploadedAsset[]>([]);
-  const [generatedAssets, setGeneratedAssets] = useState<GeneratedAsset[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isDownloading, setIsDownloading] = useState(false);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  const fetchAssets = useCallback(async () => {
-    setIsLoading(true);
-    setSelectedIds(new Set()); // Clear selection on tab change
-    try {
-      const response = await apiFetch(`/api/assets?tab=${activeTab}`);
-      if (response.ok) {
-        const result = await response.json();
-        if (activeTab === "uploaded") {
-          setUploadedAssets(result.data);
-          onCountChange?.("uploaded", result.count);
-        } else {
-          setGeneratedAssets(result.data);
-          onCountChange?.("generated", result.count);
-        }
-      }
-    } catch (error) {
-      console.error("Failed to fetch assets:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [activeTab, onCountChange]);
+  // Use SWR-powered hook for cached data
+  const {
+    assets,
+    totalCount,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    selectedIds,
+    selectedAssets: selectedAssetsList,
+    loadMore,
+    toggleSelect,
+    clearSelection,
+    deleteSelected,
+  } = useAssets(activeTab);
 
+  // Notify parent of count changes
   useEffect(() => {
-    fetchAssets();
-  }, [fetchAssets]);
+    onCountChange?.(activeTab, totalCount);
+  }, [activeTab, totalCount, onCountChange]);
 
-  const handleDeleteSelected = async () => {
-    if (selectedIds.size === 0) return;
+  // Clear selection on tab change
+  useEffect(() => {
+    clearSelection();
+  }, [activeTab, clearSelection]);
 
-    const assets = activeTab === "uploaded" ? uploadedAssets : generatedAssets;
-    const selectedAssets = assets.filter((a) => selectedIds.has(a.id));
+  // Infinite scroll with IntersectionObserver
+  useEffect(() => {
+    if (!loadMoreRef.current || isLoading || isLoadingMore || !hasMore) return;
 
-    let successCount = 0;
-    for (const asset of selectedAssets) {
-      const assetType =
-        activeTab === "uploaded"
-          ? "uploaded"
-          : (asset as GeneratedAsset).type;
-      const isUploaded = assetType === "uploaded";
-      const url = isUploaded
-        ? `/api/assets?type=uploaded&url=${encodeURIComponent((asset as UploadedAsset).url)}`
-        : `/api/assets?type=${assetType}&id=${asset.id}`;
-
-      try {
-        const response = await apiFetch(url, { method: "DELETE" });
-        if (response.ok) {
-          successCount++;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+          loadMore();
         }
-      } catch {
-        // Continue with other deletions
-      }
-    }
+      },
+      { threshold: 0.1, rootMargin: "200px" }
+    );
 
-    if (successCount > 0) {
-      toast.success(`Deleted ${successCount} asset${successCount > 1 ? "s" : ""}`);
-      if (activeTab === "uploaded") {
-        setUploadedAssets((prev) => prev.filter((a) => !selectedIds.has(a.id)));
-        onCountChange?.("uploaded", uploadedAssets.length - successCount);
-      } else {
-        setGeneratedAssets((prev) => prev.filter((a) => !selectedIds.has(a.id)));
-        onCountChange?.("generated", generatedAssets.length - successCount);
-      }
-      setSelectedIds(new Set());
-    }
-  };
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, isLoading, isLoadingMore, loadMore]);
 
-  const toggleSelect = useCallback((id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
+  // Filter assets by search query
+  const filteredAssets = useMemo(() => {
+    if (!searchQuery) return assets;
+
+    const query = searchQuery.toLowerCase();
+    return assets.filter((asset) => {
+      if ("filename" in asset) {
+        return (
+          (asset as UploadedAsset).filename.toLowerCase().includes(query) ||
+          (asset as UploadedAsset).category.toLowerCase().includes(query)
+        );
       }
-      return next;
+      return (asset as GeneratedAsset).prompt.toLowerCase().includes(query);
     });
-  }, []);
-
-  const toggleSelectGroup = useCallback((assetIds: string[]) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      const allSelected = assetIds.every((id) => next.has(id));
-      if (allSelected) {
-        assetIds.forEach((id) => next.delete(id));
-      } else {
-        assetIds.forEach((id) => next.add(id));
-      }
-      return next;
-    });
-  }, []);
+  }, [assets, searchQuery]);
 
   const handleDownloadSelected = useCallback(async () => {
     if (selectedIds.size === 0 || isDownloading) return;
@@ -207,17 +122,11 @@ export default function AssetsGrid({
     );
 
     try {
-      const assets = activeTab === "uploaded" ? uploadedAssets : generatedAssets;
-      const selectedAssetsList = assets.filter((a) => selectedIds.has(a.id));
-
       if (selectedAssetsList.length === 1) {
-        // Single file download
         const asset = selectedAssetsList[0];
-        const url = asset.url;
-        const response = await fetch(url);
+        const response = await fetch(asset.url);
         const blob = await response.blob();
 
-        // Get filename from URL or generate one
         const ext = asset.type === "video" ? ".mp4" : ".jpg";
         const filename =
           "filename" in asset
@@ -235,7 +144,6 @@ export default function AssetsGrid({
 
         toast.success("Download started", { id: loadingToast });
       } else {
-        // Multiple files - create zip
         const zip = new JSZip();
 
         for (let i = 0; i < selectedAssetsList.length; i++) {
@@ -276,46 +184,15 @@ export default function AssetsGrid({
     } finally {
       setIsDownloading(false);
     }
-  }, [selectedIds, isDownloading, activeTab, uploadedAssets, generatedAssets]);
+  }, [selectedIds, isDownloading, selectedAssetsList]);
 
-  // Filter assets by search query
-  const filteredUploaded = useMemo(
-    () =>
-      uploadedAssets.filter(
-        (asset) =>
-          asset.filename.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          asset.category.toLowerCase().includes(searchQuery.toLowerCase())
-      ),
-    [uploadedAssets, searchQuery]
-  );
+  const title = activeTab === "generated" ? "Generated Assets" : "Uploaded Assets";
+  const isEmpty = !isLoading && filteredAssets.length === 0;
 
-  const filteredGenerated = useMemo(
-    () =>
-      generatedAssets.filter((asset) =>
-        asset.prompt.toLowerCase().includes(searchQuery.toLowerCase())
-      ),
-    [generatedAssets, searchQuery]
-  );
-
-  const uploadedGroups = useMemo(
-    () => groupAssetsByDate(filteredUploaded),
-    [filteredUploaded]
-  );
-  const generatedGroups = useMemo(
-    () => groupAssetsByDate(filteredGenerated),
-    [filteredGenerated]
-  );
-
-  const groups = activeTab === "uploaded" ? uploadedGroups : generatedGroups;
-  const title =
-    activeTab === "generated" ? "Generated Assets" : "Uploaded Assets";
-  const isEmpty = groups.length === 0;
-
-  // Get selected assets for thumbnail preview
-  const selectedAssets = useMemo(() => {
-    const assets = activeTab === "uploaded" ? uploadedAssets : generatedAssets;
-    return assets.filter((a) => selectedIds.has(a.id)).slice(0, 2);
-  }, [activeTab, uploadedAssets, generatedAssets, selectedIds]);
+  // Get selected assets for thumbnail preview (limit to 2)
+  const selectedAssetsThumbnails = useMemo(() => {
+    return selectedAssetsList.slice(0, 2);
+  }, [selectedAssetsList]);
 
   return (
     <section className="relative grid grid-rows-[auto_1fr] gap-4 min-h-0 flex-1">
@@ -323,17 +200,22 @@ export default function AssetsGrid({
       <header className="flex items-center justify-between">
         <h1 className="font-heading text-lg text-white uppercase">
           {title}
+          {totalCount > 0 && (
+            <span className="ml-2 text-sm font-normal text-zinc-400">
+              ({filteredAssets.length}{searchQuery ? ` of ${totalCount}` : ""})
+            </span>
+          )}
         </h1>
       </header>
 
       {/* Grid Container */}
-      <div className="relative w-full h-full border border-zinc-800 border-b-0 bg-zinc-900 min-h-0 p-4 pb-20 overflow-y-auto rounded-t-[1.25rem] select-none">
+      <div className="relative w-full h-full border border-white/10 border-b-0 bg-black/40 backdrop-blur-xl min-h-0 p-4 pb-20 overflow-y-auto rounded-t-[1.25rem] select-none">
         {isLoading ? (
-          <div className="flex h-full w-full items-center justify-center">
-            <div className="flex flex-col items-center gap-3">
-              <div className="size-8 animate-spin rounded-full border-2 border-zinc-600 border-t-white" />
-              <span className="text-sm text-zinc-400">Loading assets...</span>
-            </div>
+          // Initial loading skeleton grid
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {Array.from({ length: 18 }).map((_, i) => (
+              <AssetSkeleton key={i} />
+            ))}
           </div>
         ) : isEmpty ? (
           <div className="flex h-full w-full items-center justify-center">
@@ -341,7 +223,7 @@ export default function AssetsGrid({
               <h2 className="font-heading text-center text-2xl font-bold text-white uppercase">
                 Nothing Here Yet
               </h2>
-              <p className="text-center text-sm text-gray-400">
+              <p className="text-center text-sm text-zinc-300">
                 {activeTab === "generated"
                   ? "Generate images or videos to see them here"
                   : "Upload files to see them here"}
@@ -349,67 +231,37 @@ export default function AssetsGrid({
             </div>
           </div>
         ) : (
-          <div className="space-y-6">
-            {groups.map((group) => {
-              const groupIds = group.assets.map((a) => a.id);
-              const allSelected = groupIds.every((id) => selectedIds.has(id));
-              const someSelected =
-                !allSelected && groupIds.some((id) => selectedIds.has(id));
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {filteredAssets.map((asset) =>
+                activeTab === "uploaded" ? (
+                  <UploadedAssetCard
+                    key={asset.id}
+                    asset={asset as UploadedAsset}
+                    isSelected={selectedIds.has(asset.id)}
+                    onToggleSelect={() => toggleSelect(asset.id)}
+                  />
+                ) : (
+                  <GeneratedAssetCard
+                    key={asset.id}
+                    asset={asset as GeneratedAsset}
+                    isSelected={selectedIds.has(asset.id)}
+                    onToggleSelect={() => toggleSelect(asset.id)}
+                  />
+                )
+              )}
+            </div>
 
-              return (
-                <div key={group.date}>
-                  {/* Date Header with Select All */}
-                  <div className="mb-4">
-                    <button
-                      type="button"
-                      onClick={() => toggleSelectGroup(groupIds)}
-                      className="inline-grid grid-flow-col-dense auto-cols-min gap-2 items-center cursor-pointer group"
-                    >
-                      <span
-                        role="checkbox"
-                        aria-checked={allSelected}
-                        className={`size-5 rounded border-2 flex items-center justify-center transition-all ${
-                          allSelected
-                            ? "bg-white border-white"
-                            : someSelected
-                              ? "bg-white/50 border-white"
-                              : "border-zinc-600 group-hover:border-zinc-500"
-                        }`}
-                      >
-                        <span className={allSelected || someSelected ? "opacity-100" : "opacity-0"}>
-                          <CheckIcon dark />
-                        </span>
-                      </span>
-                      <h2 className="text-sm font-bold text-white truncate">
-                        {group.dateLabel}
-                      </h2>
-                    </button>
-                  </div>
-
-                  {/* Assets Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {activeTab === "uploaded"
-                      ? (group.assets as UploadedAsset[]).map((asset) => (
-                          <UploadedAssetCard
-                            key={asset.id}
-                            asset={asset}
-                            isSelected={selectedIds.has(asset.id)}
-                            onToggleSelect={() => toggleSelect(asset.id)}
-                          />
-                        ))
-                      : (group.assets as GeneratedAsset[]).map((asset) => (
-                          <GeneratedAssetCard
-                            key={asset.id}
-                            asset={asset}
-                            isSelected={selectedIds.has(asset.id)}
-                            onToggleSelect={() => toggleSelect(asset.id)}
-                          />
-                        ))}
-                  </div>
+            {/* Load more trigger */}
+            <div ref={loadMoreRef} className="py-8 flex items-center justify-center">
+              {isLoadingMore && (
+                <div className="flex items-center gap-3">
+                  <div className="size-5 animate-spin rounded-full border-2 border-pink-400/30 border-t-pink-400" />
+                  <span className="text-sm text-zinc-400">Loading more...</span>
                 </div>
-              );
-            })}
-          </div>
+              )}
+            </div>
+          </>
         )}
       </div>
 
@@ -428,7 +280,7 @@ export default function AssetsGrid({
           {/* Selected count with image stack */}
           <div className="grid grid-cols-[auto_1fr] items-center h-full gap-2 px-3">
             <div className="relative size-4">
-              {selectedAssets.map((asset, index) => {
+              {selectedAssetsThumbnails.map((asset, index) => {
                 const isVideo = asset.type === "video";
                 const thumbnailUrl =
                   "thumbnailUrl" in asset ? asset.thumbnailUrl : null;
@@ -484,22 +336,22 @@ export default function AssetsGrid({
             disabled={isDownloading}
             className="flex items-center gap-1.5 h-10 px-4 rounded-full text-sm font-bold transition-colors disabled:opacity-50"
             style={{
-              color: "#22d3ee",
-              backgroundColor: "rgba(34, 211, 238, 0.15)",
+              color: "#f472b6",
+              backgroundColor: "rgba(244, 114, 182, 0.15)",
               boxShadow:
-                "rgba(34, 211, 238, 0.3) -0.5px -0.5px 1px 0px inset, rgba(34, 211, 238, 0.4) 0.8px 0.5px 0.5px 0px inset",
+                "rgba(244, 114, 182, 0.3) -0.5px -0.5px 1px 0px inset, rgba(244, 114, 182, 0.4) 0.8px 0.5px 0.5px 0px inset",
             }}
             onMouseEnter={(e) => {
               if (!isDownloading) {
-                e.currentTarget.style.backgroundColor = "rgba(34, 211, 238, 0.25)";
+                e.currentTarget.style.backgroundColor = "rgba(244, 114, 182, 0.25)";
               }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "rgba(34, 211, 238, 0.15)";
+              e.currentTarget.style.backgroundColor = "rgba(244, 114, 182, 0.15)";
             }}
           >
             {isDownloading ? (
-              <div className="size-5 animate-spin rounded-full border-2 border-cyan-400/30 border-t-cyan-400" />
+              <div className="size-5 animate-spin rounded-full border-2 border-pink-400/30 border-t-pink-400" />
             ) : (
               <svg
                 width="20"
@@ -520,7 +372,7 @@ export default function AssetsGrid({
           {/* Delete button */}
           <button
             type="button"
-            onClick={handleDeleteSelected}
+            onClick={deleteSelected}
             className="flex items-center justify-center size-10 rounded-full transition hover:bg-white/10"
             style={{
               backdropFilter: "blur(2rem)",
@@ -561,53 +413,75 @@ function UploadedAssetCard({
   onToggleSelect: () => void;
 }) {
   const isVideo = asset.type === "video";
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(!isVideo); // Videos without thumbnails load immediately
+  const [isPlaying, setIsPlaying] = useState(false);
 
   return (
     <figure
       aria-selected={isSelected}
-      className="group relative aspect-square overflow-hidden rounded-2xl bg-zinc-800 cursor-pointer z-0 ring-3 ring-transparent aria-selected:ring-white hover:ring-zinc-600 transition"
+      className="grid-item-perf group relative aspect-square overflow-hidden rounded-2xl border border-white/10 cursor-pointer ring-3 ring-transparent aria-selected:ring-white hover:ring-white/30 transition"
       onClick={onToggleSelect}
     >
-      {/* Skeleton loader */}
-      {!isLoaded && (
-        <div className="skeleton-loader absolute inset-0 -z-10" />
-      )}
+      {/* Skeleton loader - fades out when loaded */}
+      <div
+        className={`absolute inset-0 transition-opacity duration-300 ${
+          isLoaded ? "opacity-0 pointer-events-none" : "opacity-100"
+        }`}
+      >
+        <div className="skeleton-loader size-full" />
+      </div>
 
       {isVideo ? (
-        <video
-          src={asset.url}
-          className={`absolute inset-0 size-full object-cover -z-10 transition group-hover:brightness-75 ${
-            isLoaded ? "opacity-100" : "opacity-0"
-          }`}
-          muted
-          playsInline
-          onLoadedData={() => setIsLoaded(true)}
-          onMouseEnter={(e) => {
-            e.currentTarget.play().catch(() => {});
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.pause();
-            e.currentTarget.currentTime = 0;
-          }}
-        />
+        <>
+          {/* Video only rendered when playing */}
+          {isPlaying && (
+            <video
+              src={asset.url}
+              className="absolute inset-0 size-full object-cover z-10"
+              muted
+              playsInline
+              autoPlay
+              loop
+              onEnded={() => setIsPlaying(false)}
+            />
+          )}
+          {/* Video placeholder with play button */}
+          {!isPlaying && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-zinc-900">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsPlaying(true);
+                }}
+                className="flex size-12 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition hover:bg-white/30 hover:scale-110"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8 5.14v14l11-7-11-7z" />
+                </svg>
+              </button>
+            </div>
+          )}
+        </>
       ) : (
         <Image
           src={asset.url}
           alt={asset.filename}
           fill
           loading="lazy"
-          className={`object-cover -z-10 transition group-hover:brightness-75 ${
+          unoptimized
+          className={`object-cover z-10 transition group-hover:brightness-75 ${
             isLoaded ? "opacity-100" : "opacity-0"
           }`}
-          sizes="150px"
+          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 16vw"
           onLoad={() => setIsLoaded(true)}
+          onError={() => setIsLoaded(true)}
         />
       )}
 
       {/* Selection checkbox */}
       <label
-        className={`absolute top-0 left-0 z-10 p-2 transition-opacity ${
+        className={`absolute top-0 left-0 z-20 p-2 transition-opacity ${
           isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
         }`}
       >
@@ -632,7 +506,7 @@ function UploadedAssetCard({
       </label>
 
       {/* Category badge */}
-      <div className="absolute top-2 right-2 rounded-md bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white capitalize">
+      <div className="absolute top-2 right-2 z-20 rounded-md bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white capitalize">
         {asset.category}
       </div>
     </figure>
@@ -649,55 +523,101 @@ function GeneratedAssetCard({
   onToggleSelect: () => void;
 }) {
   const isVideo = asset.type === "video";
-  const thumbnailUrl = asset.thumbnailUrl || asset.url;
-  const [isLoaded, setIsLoaded] = useState(false);
+  const thumbnailUrl = asset.thumbnailUrl || null;
+  // If video without thumbnail, consider it "loaded" immediately
+  const [isLoaded, setIsLoaded] = useState(isVideo && !thumbnailUrl);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   return (
     <figure
       aria-selected={isSelected}
-      className="group relative aspect-square overflow-hidden rounded-2xl bg-zinc-800 cursor-pointer z-0 ring-3 ring-transparent aria-selected:ring-white hover:ring-zinc-600 transition"
+      className="grid-item-perf group relative aspect-square overflow-hidden rounded-2xl border border-white/10 cursor-pointer ring-3 ring-transparent aria-selected:ring-white hover:ring-white/30 transition"
       onClick={onToggleSelect}
     >
-      {/* Skeleton loader */}
-      {!isLoaded && (
-        <div className="skeleton-loader absolute inset-0 -z-10" />
-      )}
+      {/* Skeleton loader - fades out when loaded */}
+      <div
+        className={`absolute inset-0 transition-opacity duration-300 ${
+          isLoaded ? "opacity-0 pointer-events-none" : "opacity-100"
+        }`}
+      >
+        <div className="skeleton-loader size-full" />
+      </div>
 
       {isVideo ? (
-        <video
-          src={asset.url}
-          poster={asset.thumbnailUrl || undefined}
-          className={`absolute inset-0 size-full object-cover -z-10 transition group-hover:brightness-75 ${
-            isLoaded ? "opacity-100" : "opacity-0"
-          }`}
-          muted
-          playsInline
-          onLoadedData={() => setIsLoaded(true)}
-          onMouseEnter={(e) => {
-            e.currentTarget.play().catch(() => {});
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.pause();
-            e.currentTarget.currentTime = 0;
-          }}
-        />
+        <>
+          {/* Video only rendered when playing */}
+          {isPlaying && (
+            <video
+              src={asset.url}
+              className="absolute inset-0 size-full object-cover z-10"
+              muted
+              playsInline
+              autoPlay
+              loop
+              onEnded={() => setIsPlaying(false)}
+            />
+          )}
+          {/* Thumbnail image when not playing */}
+          {!isPlaying && thumbnailUrl && (
+            <Image
+              src={thumbnailUrl}
+              alt={asset.prompt}
+              fill
+              loading="lazy"
+              unoptimized
+              className={`object-cover z-10 transition group-hover:brightness-75 ${
+                isLoaded ? "opacity-100" : "opacity-0"
+              }`}
+              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 16vw"
+              onLoad={() => setIsLoaded(true)}
+              onError={() => setIsLoaded(true)}
+            />
+          )}
+          {/* Placeholder when no thumbnail and not playing */}
+          {!isPlaying && !thumbnailUrl && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-zinc-900">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-zinc-500">
+                <path d="M8 5.14v14l11-7-11-7z" fill="currentColor" />
+              </svg>
+            </div>
+          )}
+          {/* Play button overlay */}
+          {!isPlaying && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsPlaying(true);
+              }}
+              className="absolute inset-0 z-15 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <div className="flex size-12 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition hover:bg-white/30 hover:scale-110">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8 5.14v14l11-7-11-7z" />
+                </svg>
+              </div>
+            </button>
+          )}
+        </>
       ) : (
         <Image
-          src={thumbnailUrl}
+          src={asset.url}
           alt={asset.prompt}
           fill
           loading="lazy"
-          className={`object-cover -z-10 transition group-hover:brightness-75 ${
+          unoptimized
+          className={`object-cover z-10 transition group-hover:brightness-75 ${
             isLoaded ? "opacity-100" : "opacity-0"
           }`}
-          sizes="150px"
+          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 16vw"
           onLoad={() => setIsLoaded(true)}
+          onError={() => setIsLoaded(true)}
         />
       )}
 
       {/* Selection checkbox */}
       <label
-        className={`absolute top-0 left-0 z-10 p-2 transition-opacity ${
+        className={`absolute top-0 left-0 z-20 p-2 transition-opacity ${
           isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
         }`}
       >
@@ -722,7 +642,7 @@ function GeneratedAssetCard({
       </label>
 
       {/* Type badge */}
-      <div className="absolute top-2 right-2 rounded-md bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white capitalize">
+      <div className="absolute top-2 right-2 z-20 rounded-md bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white capitalize">
         {asset.type}
       </div>
     </figure>

@@ -79,18 +79,18 @@ export function NestedDropdown({
                   isActive
                     ? "bg-white/10"
                     : hasSelectedOption
-                      ? "bg-cyan-400/10"
+                      ? "bg-pink-400/10"
                       : "hover:bg-white/5"
                 }`}
               >
                 {group.icon && (
                   <div
                     className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${
-                      hasSelectedOption ? "bg-cyan-400/20" : "bg-zinc-700"
+                      hasSelectedOption ? "bg-pink-400/20" : "bg-zinc-700"
                     }`}
                   >
                     <div
-                      className={`size-5 ${hasSelectedOption ? "text-cyan-400" : "text-white"}`}
+                      className={`size-5 ${hasSelectedOption ? "text-pink-400" : "text-white"}`}
                     >
                       {group.icon}
                     </div>
@@ -124,12 +124,12 @@ export function NestedDropdown({
                     handleClose();
                   }}
                   className={`flex w-full items-center gap-3 rounded-xl p-2.5 text-left transition-colors outline-none hover:bg-white/5 ${
-                    isSelected ? "bg-cyan-400/10 ring-1 ring-cyan-400/30" : ""
+                    isSelected ? "bg-pink-400/10 ring-1 ring-pink-400/30" : ""
                   }`}
                 >
                   <div className="flex min-w-0 flex-1 flex-col gap-1">
                     <p
-                      className={`text-sm font-medium ${isSelected ? "text-cyan-400" : "text-white"}`}
+                      className={`text-sm font-medium ${isSelected ? "text-pink-400" : "text-white"}`}
                     >
                       {option.label}
                     </p>

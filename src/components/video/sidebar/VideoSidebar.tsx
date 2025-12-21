@@ -71,15 +71,15 @@ export default function VideoSidebar({
   };
 
   return (
-    <aside className="mb-4 ml-4 flex w-80 flex-col rounded-2xl bg-zinc-900/50">
+    <aside className="mb-4 ml-4 flex w-80 flex-col rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl">
       {/* Tabs */}
-      <nav className="flex items-center gap-3 border-b border-zinc-800 px-4 py-3">
+      <nav className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
         <button
           onClick={() => setActiveTab("create")}
           className={`-mb-3 border-b-2 pb-2 text-sm font-medium whitespace-nowrap transition-colors ${
             activeTab === "create"
               ? "border-white text-white"
-              : "border-transparent text-gray-500 hover:text-gray-300"
+              : "border-transparent text-zinc-400 hover:text-white"
           }`}
         >
           Create Video
@@ -89,7 +89,7 @@ export default function VideoSidebar({
           className={`-mb-3 border-b-2 pb-2 text-sm font-medium whitespace-nowrap transition-colors ${
             activeTab === "edit"
               ? "border-white text-white"
-              : "border-transparent text-gray-500 hover:text-gray-300"
+              : "border-transparent text-zinc-400 hover:text-white"
           }`}
         >
           Edit Video
@@ -130,7 +130,7 @@ export default function VideoSidebar({
           <button
             onClick={onGenerate}
             disabled={isGenerating}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 text-sm font-semibold text-black shadow-[inset_0px_-3px_rgba(0,0,0,0.25)] transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-pink-400 text-sm font-semibold text-black shadow-[inset_0px_-3px_rgba(0,0,0,0.25)] transition hover:bg-pink-300 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isGenerating ? (
               <>
@@ -148,7 +148,7 @@ export default function VideoSidebar({
             )}
           </button>
         ) : (
-          <button className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 text-sm font-semibold text-black shadow-[inset_0px_-3px_rgba(0,0,0,0.25)] transition hover:bg-cyan-300">
+          <button className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-pink-400 text-sm font-semibold text-black shadow-[inset_0px_-3px_rgba(0,0,0,0.25)] transition hover:bg-pink-300">
             <ExportIcon />
             Export Video
           </button>

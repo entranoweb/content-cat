@@ -61,7 +61,7 @@ export default function FeaturedCards() {
             href={card.href}
             className="group w-[38%] flex-shrink-0"
           >
-            <div className="relative aspect-[16/9] overflow-hidden rounded-2xl bg-zinc-800">
+            <div className="relative aspect-[16/9] overflow-hidden rounded-2xl bg-black/30 backdrop-blur-md">
               <Image
                 src={card.image}
                 alt={card.title}
@@ -71,10 +71,10 @@ export default function FeaturedCards() {
               />
             </div>
             <div className="mt-2">
-              <h4 className="font-heading text-sm text-white transition-colors duration-300 group-hover:text-cyan-400">
+              <h4 className="font-heading text-sm text-white transition-colors duration-300 group-hover:text-pink-400">
                 {card.title}
               </h4>
-              <p className="text-xs text-gray-400">{card.description}</p>
+              <p className="text-xs text-zinc-300">{card.description}</p>
             </div>
           </Link>
         ))}

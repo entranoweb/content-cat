@@ -14,7 +14,7 @@ export interface GeneratedAsset {
   createdAt: Date;
 }
 
-// GET /api/assets - List assets (uploaded or generated)
+// GET /api/assets - List assets (uploaded or generated) with pagination
 export async function GET(request: Request) {
   const { user, error } = await requireAuth();
   if (error) return error;
@@ -22,20 +22,52 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const tab = searchParams.get("tab") || "generated";
+    const cursor = searchParams.get("cursor");
+    const limitParam = searchParams.get("limit");
+    const limit = Math.min(Math.max(parseInt(limitParam || "50"), 1), 100);
 
     if (tab === "uploaded") {
-      // Get uploaded files from local storage
+      // Get uploaded files from local storage (pagination handled client-side for local files)
       const files = await listUploadedFiles();
       return NextResponse.json({
         data: files,
         count: files.length,
+        hasMore: false,
+        nextCursor: null,
       });
     } else {
-      // Get generated assets (images + videos) from database
+      // Get total counts for both types
+      const [imageCount, videoCount] = await Promise.all([
+        prisma.generatedImage.count({ where: { userId: user!.id } }),
+        prisma.generatedVideo.count({ where: { userId: user!.id } }),
+      ]);
+      const totalCount = imageCount + videoCount;
+
+      // Parse cursor to get the timestamp and last ID for stable pagination
+      let cursorDate: Date | undefined;
+      let cursorId: string | undefined;
+      if (cursor) {
+        const [timestamp, id] = cursor.split("_");
+        cursorDate = new Date(parseInt(timestamp));
+        cursorId = id;
+      }
+
+      // Fetch paginated data with cursor-based pagination
       const [images, videos] = await Promise.all([
         prisma.generatedImage.findMany({
-          where: { userId: user!.id },
-          orderBy: { createdAt: "desc" },
+          where: {
+            userId: user!.id,
+            ...(cursorDate && cursorId
+              ? {
+                  OR: [
+                    { createdAt: { lt: cursorDate } },
+                    { createdAt: cursorDate, id: { lt: cursorId } },
+                  ],
+                }
+              : {}),
+          },
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+          take: limit + 1, // Fetch one extra to check if there are more
           select: {
             id: true,
             url: true,
@@ -45,8 +77,19 @@ export async function GET(request: Request) {
           },
         }),
         prisma.generatedVideo.findMany({
-          where: { userId: user!.id },
-          orderBy: { createdAt: "desc" },
+          where: {
+            userId: user!.id,
+            ...(cursorDate && cursorId
+              ? {
+                  OR: [
+                    { createdAt: { lt: cursorDate } },
+                    { createdAt: cursorDate, id: { lt: cursorId } },
+                  ],
+                }
+              : {}),
+          },
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+          take: limit + 1,
           select: {
             id: true,
             url: true,
@@ -79,14 +122,28 @@ export async function GET(request: Request) {
         })),
       ];
 
-      // Sort by creation date (newest first)
-      generatedAssets.sort(
-        (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-      );
+      // Sort by creation date (newest first), then by ID for stability
+      generatedAssets.sort((a, b) => {
+        const dateCompare = b.createdAt.getTime() - a.createdAt.getTime();
+        if (dateCompare !== 0) return dateCompare;
+        return b.id.localeCompare(a.id);
+      });
+
+      // Take only the requested limit
+      const paginatedAssets = generatedAssets.slice(0, limit);
+      const hasMore = generatedAssets.length > limit;
+
+      // Generate next cursor from last item
+      const lastItem = paginatedAssets[paginatedAssets.length - 1];
+      const nextCursor = hasMore && lastItem
+        ? `${lastItem.createdAt.getTime()}_${lastItem.id}`
+        : null;
 
       return NextResponse.json({
-        data: generatedAssets,
-        count: generatedAssets.length,
+        data: paginatedAssets,
+        count: totalCount,
+        hasMore,
+        nextCursor,
       });
     }
   } catch (error) {

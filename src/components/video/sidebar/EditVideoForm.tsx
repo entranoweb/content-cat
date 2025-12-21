@@ -115,7 +115,7 @@ export default function EditVideoForm({
                   transitionDuration: parseFloat(e.target.value),
                 })
               }
-              className="h-1 w-20 cursor-pointer appearance-none rounded-full bg-zinc-600 accent-cyan-400"
+              className="h-1 w-20 cursor-pointer appearance-none rounded-full bg-zinc-600 accent-pink-400"
             />
             <span className="w-10 text-right text-sm text-white">
               {editState.transitionDuration}s
@@ -135,7 +135,7 @@ export default function EditVideoForm({
               onUpdateEditState({ textEnabled: !editState.textEnabled })
             }
             className={`relative inline-flex h-5 w-8 shrink-0 cursor-pointer items-center rounded-full transition ${
-              editState.textEnabled ? "bg-cyan-400" : "bg-zinc-700"
+              editState.textEnabled ? "bg-pink-400" : "bg-zinc-700"
             }`}
           >
             <span
@@ -154,7 +154,7 @@ export default function EditVideoForm({
               onChange={(e) =>
                 onUpdateEditState({ textContent: e.target.value })
               }
-              className="hide-scrollbar w-full resize-none rounded-lg bg-zinc-700/50 px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:ring-1 focus:ring-cyan-400 focus:outline-none"
+              className="hide-scrollbar w-full resize-none rounded-lg bg-zinc-700/50 px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:ring-1 focus:ring-pink-400 focus:outline-none"
               placeholder="Enter your text..."
               rows={2}
             />
@@ -238,7 +238,7 @@ export default function EditVideoForm({
               })
             }
             className={`relative inline-flex h-5 w-8 shrink-0 cursor-pointer items-center rounded-full transition ${
-              editState.subtitlesEnabled ? "bg-cyan-400" : "bg-zinc-700"
+              editState.subtitlesEnabled ? "bg-pink-400" : "bg-zinc-700"
             }`}
           >
             <span
@@ -252,7 +252,7 @@ export default function EditVideoForm({
         {editState.subtitlesEnabled && (
           <div className="space-y-2">
             {/* Upload SRT */}
-            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-zinc-600 bg-zinc-700/30 px-3 py-3 text-sm text-gray-400 transition hover:border-cyan-400 hover:text-white">
+            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-zinc-600 bg-zinc-700/30 px-3 py-3 text-sm text-gray-400 transition hover:border-pink-400 hover:text-white">
               <input type="file" accept=".srt,.vtt" className="sr-only" />
               <UploadIcon />
               Upload SRT/VTT
@@ -310,7 +310,7 @@ export default function EditVideoForm({
               })
             }
             className={`relative inline-flex h-5 w-8 shrink-0 cursor-pointer items-center rounded-full transition ${
-              editState.audioEnabled ? "bg-cyan-400" : "bg-zinc-700"
+              editState.audioEnabled ? "bg-pink-400" : "bg-zinc-700"
             }`}
           >
             <span
@@ -324,7 +324,7 @@ export default function EditVideoForm({
         {editState.audioEnabled && (
           <div className="space-y-2">
             {/* Upload Audio */}
-            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-zinc-600 bg-zinc-700/30 px-3 py-3 text-sm text-gray-400 transition hover:border-cyan-400 hover:text-white">
+            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-zinc-600 bg-zinc-700/30 px-3 py-3 text-sm text-gray-400 transition hover:border-pink-400 hover:text-white">
               <input type="file" accept="audio/*" className="sr-only" />
               <MusicIcon />
               Upload Audio
@@ -345,7 +345,7 @@ export default function EditVideoForm({
                       audioVolume: parseFloat(e.target.value),
                     })
                   }
-                  className="h-1 w-20 cursor-pointer appearance-none rounded-full bg-zinc-600 accent-cyan-400"
+                  className="h-1 w-20 cursor-pointer appearance-none rounded-full bg-zinc-600 accent-pink-400"
                 />
                 <span className="w-10 text-right text-sm text-white">
                   {Math.round(editState.audioVolume * 100)}%
@@ -368,7 +368,7 @@ export default function EditVideoForm({
                   })
                 }
                 className={`relative inline-flex h-5 w-8 shrink-0 cursor-pointer items-center rounded-full transition ${
-                  editState.audioDucking ? "bg-cyan-400" : "bg-zinc-700"
+                  editState.audioDucking ? "bg-pink-400" : "bg-zinc-700"
                 }`}
               >
                 <span

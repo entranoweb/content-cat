@@ -25,13 +25,13 @@ export default function DeleteConfirmationModal({
         onClick={onCancel}
       />
       {/* Modal */}
-      <div className="relative z-10 w-full max-w-sm rounded-xl border border-zinc-700 bg-zinc-900 p-6 shadow-2xl">
+      <div className="relative z-10 w-full max-w-sm rounded-xl border border-white/10 bg-black/60 p-6 shadow-2xl backdrop-blur-xl">
         <h3 className="text-lg font-semibold text-white">{title}</h3>
-        <p className="mt-2 text-sm text-gray-400">{message}</p>
+        <p className="mt-2 text-sm text-zinc-300">{message}</p>
         <div className="mt-6 grid grid-cols-2 gap-3">
           <button
             onClick={onCancel}
-            className="rounded-lg border border-zinc-600 bg-zinc-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+            className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
           >
             Cancel
           </button>

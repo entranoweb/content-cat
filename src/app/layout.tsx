@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
 import { Providers } from "@/components/Providers";
+import ShaderBackgroundWrapper from "@/components/ShaderBackgroundWrapper";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -33,6 +34,7 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
+        <ShaderBackgroundWrapper />
         <Providers>{children}</Providers>
         <Toaster
           position="top-center"

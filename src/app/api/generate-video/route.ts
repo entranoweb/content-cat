@@ -212,10 +212,12 @@ export async function POST(request: NextRequest) {
     );
 
     // Save the video to the database
+    // Use the input image as thumbnail for image-to-video generations
     const video = await prisma.generatedVideo.create({
       data: {
         userId: user!.id,
         url: result.video.url,
+        thumbnailUrl: imageUrl || null, // Use input image as thumbnail
         prompt,
         model: modelId,
         duration: parseInt(duration) || 5,

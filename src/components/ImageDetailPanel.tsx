@@ -217,11 +217,11 @@ export default function ImageDetailPanel({
   };
 
   return (
-    <section className="grid h-full min-h-0 grid-rows-[auto_1fr] border-l border-zinc-800 bg-[#0a0a0a]">
+    <section className="grid h-full min-h-0 grid-rows-[auto_1fr] border-l border-white/10 bg-black/60 backdrop-blur-xl">
       {/* Header */}
       <header className="grid grid-cols-[1fr_auto] px-3 pt-4 pb-6">
         <div className="flex items-center gap-3">
-          <div className="relative size-10 overflow-hidden rounded-full bg-zinc-800">
+          <div className="relative size-10 overflow-hidden rounded-full bg-white/10">
             <Image
               src={image.url}
               alt="thumbnail"
@@ -232,7 +232,7 @@ export default function ImageDetailPanel({
           </div>
           <div>
             <h2 className="text-sm font-medium text-white">Image Details</h2>
-            <p className="text-xs text-zinc-400">
+            <p className="text-xs text-zinc-300">
               {image.aspectRatio} aspect ratio
             </p>
           </div>
@@ -240,7 +240,7 @@ export default function ImageDetailPanel({
         <button
           type="button"
           onClick={onClose}
-          className="flex size-10 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
+          className="flex size-10 items-center justify-center rounded-lg text-zinc-300 transition-colors hover:bg-white/10 hover:text-white"
         >
           <CloseIcon />
         </button>
@@ -251,20 +251,20 @@ export default function ImageDetailPanel({
         <div className="hide-scrollbar overflow-y-auto">
           <div className="flex flex-col gap-4 px-3 py-4">
             {/* Prompt Section */}
-            <section className="rounded-xl bg-zinc-800/50">
+            <section className="rounded-xl border border-white/10 bg-white/5">
               <div className="flex items-center justify-between px-4 py-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-zinc-400">
+                  <span className="text-zinc-300">
                     <PromptIcon />
                   </span>
-                  <p className="text-xs font-semibold text-zinc-400 uppercase">
+                  <p className="text-xs font-semibold text-zinc-300 uppercase">
                     Prompt
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={copyPrompt}
-                  className="rounded-md border border-zinc-600 px-2.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-zinc-700"
+                  className="rounded-md border border-white/10 px-2.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-white/10"
                 >
                   Copy
                 </button>
@@ -277,18 +277,18 @@ export default function ImageDetailPanel({
             </section>
 
             {/* Information Section */}
-            <section className="rounded-xl bg-zinc-800/50">
+            <section className="rounded-xl border border-white/10 bg-white/5">
               <div className="flex items-center gap-2 px-4 py-3">
-                <span className="text-zinc-400">
+                <span className="text-zinc-300">
                   <InfoIcon />
                 </span>
-                <p className="text-xs font-semibold text-zinc-400 uppercase">
+                <p className="text-xs font-semibold text-zinc-300 uppercase">
                   Information
                 </p>
               </div>
-              <div className="border-t border-zinc-700/50">
+              <div className="border-t border-white/10">
                 <div className="grid grid-cols-[1fr_auto] px-4 py-3.5">
-                  <p className="text-sm text-zinc-400">Model</p>
+                  <p className="text-sm text-zinc-300">Model</p>
                   <p className="text-sm font-medium text-white">
                     Nano Banana Pro
                   </p>
@@ -297,22 +297,22 @@ export default function ImageDetailPanel({
             </section>
 
             {/* Additional Section (Collapsible) */}
-            <section className="rounded-xl bg-zinc-800/50">
+            <section className="rounded-xl border border-white/10 bg-white/5">
               <button
                 type="button"
                 onClick={() => setIsAdditionalOpen(!isAdditionalOpen)}
                 className="flex w-full items-center justify-between px-4 py-3"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-zinc-400">
+                  <span className="text-zinc-300">
                     <SettingsIcon />
                   </span>
-                  <p className="text-xs font-semibold text-zinc-400 uppercase">
+                  <p className="text-xs font-semibold text-zinc-300 uppercase">
                     Additional
                   </p>
                 </div>
                 <span
-                  className={`text-zinc-400 transition-transform ${isAdditionalOpen ? "rotate-180" : ""}`}
+                  className={`text-zinc-300 transition-transform ${isAdditionalOpen ? "rotate-180" : ""}`}
                 >
                   <ChevronDownIcon />
                 </span>
@@ -321,19 +321,19 @@ export default function ImageDetailPanel({
                 className={`grid overflow-hidden transition-all duration-200 ${isAdditionalOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
               >
                 <div className="min-h-0 overflow-hidden">
-                  <div className="border-t border-zinc-700/50">
-                    <div className="grid grid-cols-[1fr_auto] border-b border-zinc-700/50 px-4 py-3.5 last:border-0">
-                      <p className="text-sm text-zinc-400">Quality</p>
+                  <div className="border-t border-white/10">
+                    <div className="grid grid-cols-[1fr_auto] border-b border-white/10 px-4 py-3.5 last:border-0">
+                      <p className="text-sm text-zinc-300">Quality</p>
                       <p className="text-sm font-medium text-white">1K</p>
                     </div>
-                    <div className="grid grid-cols-[1fr_auto] border-b border-zinc-700/50 px-4 py-3.5 last:border-0">
-                      <p className="text-sm text-zinc-400">Size</p>
+                    <div className="grid grid-cols-[1fr_auto] border-b border-white/10 px-4 py-3.5 last:border-0">
+                      <p className="text-sm text-zinc-300">Size</p>
                       <p className="text-sm font-medium text-white">
                         {getDimensions()}
                       </p>
                     </div>
                     <div className="grid grid-cols-[1fr_auto] px-4 py-3.5">
-                      <p className="text-sm text-zinc-400">Created</p>
+                      <p className="text-sm text-zinc-300">Created</p>
                       <p className="text-sm font-medium text-white">
                         {formatDate(image.createdAt)}
                       </p>
@@ -352,7 +352,7 @@ export default function ImageDetailPanel({
             <button
               type="button"
               onClick={() => onRecreate(image.prompt)}
-              className="col-span-2 flex h-12 items-center justify-center gap-2 rounded-xl bg-cyan-400 text-sm font-semibold text-black transition-colors hover:bg-cyan-300"
+              className="col-span-2 flex h-12 items-center justify-center gap-2 rounded-xl bg-pink-400 text-sm font-semibold text-black transition-colors hover:bg-pink-300"
             >
               <RecreateIcon />
               Recreate
@@ -361,7 +361,7 @@ export default function ImageDetailPanel({
             {/* Video */}
             <button
               type="button"
-              className="flex h-12 items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800/50 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+              className="flex h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 text-sm font-medium text-white transition-colors hover:bg-white/10"
             >
               <VideoIcon />
               Video
@@ -371,7 +371,7 @@ export default function ImageDetailPanel({
             <button
               type="button"
               onClick={() => onDownload(image.url, image.prompt)}
-              className="flex h-12 items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800/50 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+              className="flex h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 text-sm font-medium text-white transition-colors hover:bg-white/10"
             >
               <DownloadIcon />
               Download
@@ -380,7 +380,7 @@ export default function ImageDetailPanel({
             {/* Upscale */}
             <button
               type="button"
-              className="flex h-12 items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800/50 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+              className="flex h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 text-sm font-medium text-white transition-colors hover:bg-white/10"
             >
               <UpscaleIcon />
               Upscale
@@ -389,7 +389,7 @@ export default function ImageDetailPanel({
             {/* Edit */}
             <button
               type="button"
-              className="flex h-12 items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800/50 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+              className="flex h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 text-sm font-medium text-white transition-colors hover:bg-white/10"
             >
               <EditIcon />
               Edit
@@ -399,7 +399,7 @@ export default function ImageDetailPanel({
             <button
               type="button"
               onClick={() => onDelete(image.id)}
-              className="col-span-2 flex h-12 items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800/50 text-sm font-medium text-white transition-colors hover:border-red-500/50 hover:bg-red-500/20 hover:text-red-400"
+              className="col-span-2 flex h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 text-sm font-medium text-white transition-colors hover:border-red-500/50 hover:bg-red-500/20 hover:text-red-400"
             >
               <DeleteIcon />
               Delete

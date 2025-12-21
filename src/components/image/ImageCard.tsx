@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useState } from "react";
 import Image from "next/image";
 import type { GeneratedImage } from "./types";
 
@@ -25,19 +25,35 @@ const ImageCard = memo(function ImageCard({
   onDelete,
   onEdit,
 }: ImageCardProps) {
+  const [isLoaded, setIsLoaded] = useState(false);
+
   return (
     <div
-      className="group relative size-full cursor-pointer overflow-hidden bg-zinc-800/50"
+      className="grid-item-perf group relative size-full cursor-pointer overflow-hidden rounded-lg border border-white/10"
       onClick={onClick}
     >
+      {/* Skeleton - fades out when loaded */}
+      <div
+        className={`absolute inset-0 transition-opacity duration-300 ${
+          isLoaded ? "opacity-0 pointer-events-none" : "opacity-100"
+        }`}
+      >
+        <div className="skeleton-loader size-full" />
+      </div>
+
       <Image
         src={image.url}
         alt={image.prompt}
         fill
         sizes="(max-width: 768px) 50vw, 25vw"
-        className="size-full object-cover"
+        unoptimized
+        className={`size-full object-cover transition-opacity duration-300 ${
+          isLoaded ? "opacity-100" : "opacity-0"
+        }`}
         priority={isPriority}
         loading={isPriority ? "eager" : "lazy"}
+        onLoad={() => setIsLoaded(true)}
+        onError={() => setIsLoaded(true)}
       />
 
       {/* Hover overlay gradient */}
@@ -81,7 +97,7 @@ const ImageCard = memo(function ImageCard({
             e.stopPropagation();
             onEdit();
           }}
-          className="flex size-8 items-center justify-center rounded-lg bg-black/70 text-white/80 transition-colors hover:bg-cyan-500/80 hover:text-white"
+          className="flex size-8 items-center justify-center rounded-lg bg-black/70 text-white/80 transition-colors hover:bg-pink-500/80 hover:text-white"
           title="Edit"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">

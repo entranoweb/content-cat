@@ -45,7 +45,7 @@ export default function ImageUploadSection({
             type="button"
             disabled={isSwapping}
             onClick={onSwapImages}
-            className="absolute top-1/2 left-1/2 z-[3] flex size-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-md border border-zinc-700 bg-zinc-900 text-cyan-400 transition hover:bg-zinc-800 disabled:opacity-50"
+            className="absolute top-1/2 left-1/2 z-[3] flex size-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-md border border-zinc-700 bg-zinc-900 text-pink-400 transition hover:bg-zinc-800 disabled:opacity-50"
           >
             <SwapIcon />
           </button>
@@ -153,7 +153,7 @@ export default function ImageUploadSection({
             </div>
           )}
           {!endImageUrl && (
-            <div className="pointer-events-none absolute top-1.5 right-1.5 rounded-2xl bg-white/5 px-1.5 py-0.5 text-[9px] font-medium text-gray-500 backdrop-blur-sm">
+            <div className="pointer-events-none absolute top-1.5 right-1.5 rounded-2xl bg-white/5 px-1.5 py-0.5 text-[9px] font-medium text-zinc-400 backdrop-blur-sm">
               Optional
             </div>
           )}
@@ -216,7 +216,7 @@ export default function ImageUploadSection({
         </div>
       )}
       {!singleImageUrl && (
-        <div className="pointer-events-none absolute top-2 right-2 rounded-3xl bg-white/5 px-2 py-1.5 text-xs text-gray-500 ring ring-gray-500/5 backdrop-blur-sm ring-inset">
+        <div className="pointer-events-none absolute top-2 right-2 rounded-3xl bg-white/5 px-2 py-1.5 text-xs text-zinc-400 ring ring-gray-500/5 backdrop-blur-sm ring-inset">
           Optional
         </div>
       )}

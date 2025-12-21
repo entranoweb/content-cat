@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { VideoGridSkeleton, VideoResultCard } from "./index";
 import type { GeneratedVideo } from "./types";
 
@@ -7,23 +8,48 @@ interface VideoHistoryViewProps {
   videos: GeneratedVideo[];
   isLoading: boolean;
   pendingCount: number;
+  hasMore: boolean;
+  isLoadingMore: boolean;
   onRerun: (video: GeneratedVideo) => void;
   onDelete: (id: string) => void;
   onDownload: (url: string, prompt: string) => void;
   onCopy: (prompt: string) => void;
   onAttachImages: (imageUrl?: string) => void;
+  onLoadMore: () => void;
 }
 
 export default function VideoHistoryView({
   videos,
   isLoading,
   pendingCount,
+  hasMore,
+  isLoadingMore,
   onRerun,
   onDelete,
   onDownload,
   onCopy,
   onAttachImages,
+  onLoadMore,
 }: VideoHistoryViewProps) {
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // Infinite scroll with IntersectionObserver
+  useEffect(() => {
+    if (!loadMoreRef.current || isLoading || isLoadingMore || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+          onLoadMore();
+        }
+      },
+      { threshold: 0.1, rootMargin: "200px" }
+    );
+
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, isLoading, isLoadingMore, onLoadMore]);
+
   return (
     <div className="animate-in fade-in duration-200">
       <div className="hide-scrollbar flex-1 overflow-y-auto">
@@ -50,6 +76,13 @@ export default function VideoHistoryView({
               />
             ))}
 
+          {/* Load more trigger */}
+          {!isLoading && videos.length > 0 && (
+            <div ref={loadMoreRef} className="py-4">
+              {isLoadingMore && <VideoGridSkeleton count={2} />}
+            </div>
+          )}
+
           {/* Empty state if no videos and not loading */}
           {!isLoading && videos.length === 0 && pendingCount === 0 && (
             <div className="flex h-full w-full items-center justify-center py-16">
@@ -57,7 +90,7 @@ export default function VideoHistoryView({
                 <h2 className="font-heading text-center text-2xl font-bold text-white uppercase">
                   Nothing Here Yet
                 </h2>
-                <p className="text-center text-sm text-gray-400">
+                <p className="text-center text-sm text-zinc-300">
                   Add an image and hit generate
                 </p>
               </div>

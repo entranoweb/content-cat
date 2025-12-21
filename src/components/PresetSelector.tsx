@@ -88,13 +88,13 @@ export default function PresetSelector({
           {categories.map((category) => (
             <div key={category.id} className="relative p-[1px]">
               {category.hasIndicator && (
-                <div className="absolute top-0 left-0 h-1.5 w-1.5 rounded-full bg-cyan-400" />
+                <div className="absolute top-0 left-0 h-1.5 w-1.5 rounded-full bg-pink-400" />
               )}
               <button
                 onClick={() => setActiveCategory(category.id)}
                 className={`flex items-center justify-center rounded-xl border px-3 py-2.5 text-sm font-medium text-white transition-colors ${
                   activeCategory === category.id
-                    ? "border-cyan-400/20 bg-cyan-400/10"
+                    ? "border-pink-400/20 bg-pink-400/10"
                     : "border-zinc-700 hover:border-zinc-600"
                 }`}
               >
@@ -109,7 +109,7 @@ export default function PresetSelector({
               placeholder="Search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-10 w-full rounded-xl border border-transparent bg-zinc-800 px-4 text-sm font-medium text-gray-400 transition placeholder:text-gray-500 hover:border-zinc-700 focus:border-cyan-400/50 focus:bg-zinc-800 focus:outline-none"
+              className="h-10 w-full rounded-xl border border-transparent bg-zinc-800 px-4 text-sm font-medium text-gray-400 transition placeholder:text-gray-500 hover:border-zinc-700 focus:border-pink-400/50 focus:bg-zinc-800 focus:outline-none"
             />
           </div>
           <button
@@ -150,7 +150,7 @@ export default function PresetSelector({
                 >
                   <button
                     type="button"
-                    className="absolute inset-0 z-10 flex h-full w-full items-end justify-start rounded-2xl bg-[linear-gradient(180deg,rgba(0,0,0,0)_0%,rgba(0,0,0,0.7)_80%)] px-2 pb-2 text-start font-bold uppercase ring-0 ring-cyan-400 transition-all ring-inset hover:ring-2"
+                    className="absolute inset-0 z-10 flex h-full w-full items-end justify-start rounded-2xl bg-[linear-gradient(180deg,rgba(0,0,0,0)_0%,rgba(0,0,0,0.7)_80%)] px-2 pb-2 text-start font-bold uppercase ring-0 ring-pink-400 transition-all ring-inset hover:ring-2"
                   >
                     <div className="font-heading leading-[100%] text-white opacity-100 transition">
                       <h4 className="text-[8px] lg:text-[10px]">

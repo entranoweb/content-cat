@@ -44,7 +44,7 @@ function SearchIcon() {
       width="20"
       height="20"
       viewBox="0 0 20 20"
-      className="size-5 shrink-0 text-gray-500"
+      className="size-5 shrink-0 text-zinc-400"
     >
       <path
         fillRule="evenodd"
@@ -87,7 +87,7 @@ function SearchInput({
           placeholder="Search"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full bg-transparent text-sm text-white outline-none placeholder:text-gray-500"
+          className="w-full bg-transparent text-sm text-white outline-none placeholder:text-zinc-400"
           suppressHydrationWarning
         />
       </label>
@@ -111,7 +111,7 @@ function CategoryTabs({
           className={`rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
             activeCategory === category.value
               ? "bg-zinc-700 text-white"
-              : "text-gray-400 hover:text-white"
+              : "text-zinc-300 hover:text-white"
           }`}
         >
           {category.label}
@@ -196,7 +196,7 @@ function PromptCardComponent({ prompt }: { prompt: Prompt }) {
       <div className="flex flex-1 flex-col justify-between gap-4 p-4">
         <div className="flex flex-col gap-1">
           <h3 className="text-base font-semibold text-white">{prompt.title}</h3>
-          <p className="line-clamp-2 text-sm text-gray-400">
+          <p className="line-clamp-2 text-sm text-zinc-300">
             {prompt.description}
           </p>
         </div>
@@ -234,7 +234,7 @@ export default function PromptsPage() {
   });
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[#0a0a0a]">
+    <div className="relative flex h-screen flex-col overflow-hidden">
       <Header />
       <main className="flex-1 overflow-y-auto">
         <div className="mx-auto flex max-w-[1280px] flex-col gap-8 px-6 pt-12 pb-8 md:px-10 md:pt-14">
@@ -243,9 +243,9 @@ export default function PromptsPage() {
             <PromptsIcon />
             <h2 className="font-heading mb-3 text-xl leading-none font-bold tracking-tight text-white uppercase sm:mb-4 sm:text-2xl lg:text-2xl">
               Prompt{" "}
-              <span className="block text-cyan-400 sm:inline">Gallery</span>
+              <span className="block text-pink-400 sm:inline">Gallery</span>
             </h2>
-            <p className="max-w-full text-sm text-gray-400">
+            <p className="max-w-full text-sm text-zinc-300">
               Pre-made prompts ready to go. Click one and hit generate.
             </p>
           </section>
@@ -266,7 +266,7 @@ export default function PromptsPage() {
                 <h2 className="font-heading text-lg text-white uppercase">
                   Most Popular
                 </h2>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-zinc-300">
                   Most loved AI prompts by creators
                 </p>
               </div>

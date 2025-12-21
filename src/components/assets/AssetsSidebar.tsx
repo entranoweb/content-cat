@@ -93,17 +93,17 @@ export default function AssetsSidebar({
       {/* Search Header */}
       <header className="pr-4 mb-4">
         <form
-          className="grid grid-cols-[1fr_auto] p-1 rounded-lg bg-zinc-900"
+          className="grid grid-cols-[1fr_auto] p-1 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10"
           onSubmit={(e) => e.preventDefault()}
         >
-          <label className="h-6 gap-1.5 grid grid-cols-[auto_1fr] items-center text-zinc-500 focus-within:text-white transition">
+          <label className="h-6 gap-1.5 grid grid-cols-[auto_1fr] items-center text-zinc-400 focus-within:text-white transition">
             <span className="h-full aspect-square grid justify-center items-center">
               <SearchIcon />
             </span>
             <input
               autoComplete="off"
               placeholder="Search"
-              className="w-full bg-transparent text-xs font-medium placeholder:text-zinc-500 text-white outline-none"
+              className="w-full bg-transparent text-xs font-medium placeholder:text-zinc-400 text-white outline-none"
               type="text"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
@@ -120,14 +120,14 @@ export default function AssetsSidebar({
           type="button"
           data-active={activeTab === "generated"}
           onClick={() => onTabChange("generated")}
-          className="grid grid-cols-[auto_1fr_auto] items-center w-full text-left pl-2 pr-1 py-1 h-8 rounded-lg gap-2 transition-colors text-zinc-500 hover:text-white data-[active=true]:text-white data-[active=true]:bg-zinc-800"
+          className="grid grid-cols-[auto_1fr_auto] items-center w-full text-left pl-2 pr-1 py-1 h-8 rounded-lg gap-2 transition-colors text-zinc-400 hover:text-white data-[active=true]:text-white data-[active=true]:bg-white/10"
         >
           <span className="size-4 grid justify-center items-center">
             <GeneratedIcon />
           </span>
           <p className="w-full truncate text-xs">Generated</p>
           {generatedCount > 0 && (
-            <span className="bg-zinc-900 py-0.5 px-1.5 rounded-md text-[10px] font-semibold">
+            <span className="bg-white/10 py-0.5 px-1.5 rounded-md text-[10px] font-semibold">
               {generatedCount}
             </span>
           )}
@@ -138,14 +138,14 @@ export default function AssetsSidebar({
           type="button"
           data-active={activeTab === "uploaded"}
           onClick={() => onTabChange("uploaded")}
-          className="grid grid-cols-[auto_1fr_auto] items-center w-full text-left pl-2 pr-1 py-1 h-8 rounded-lg gap-2 transition-colors text-zinc-500 hover:text-white data-[active=true]:text-white data-[active=true]:bg-zinc-800"
+          className="grid grid-cols-[auto_1fr_auto] items-center w-full text-left pl-2 pr-1 py-1 h-8 rounded-lg gap-2 transition-colors text-zinc-400 hover:text-white data-[active=true]:text-white data-[active=true]:bg-white/10"
         >
           <span className="size-4 grid justify-center items-center">
             <UploadIcon />
           </span>
           <p className="w-full truncate text-xs">Uploaded</p>
           {uploadedCount > 0 && (
-            <span className="bg-zinc-900 py-0.5 px-1.5 rounded-md text-[10px] font-semibold">
+            <span className="bg-white/10 py-0.5 px-1.5 rounded-md text-[10px] font-semibold">
               {uploadedCount}
             </span>
           )}
