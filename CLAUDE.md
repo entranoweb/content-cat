@@ -106,18 +106,17 @@ The script (`scripts/install.sh`) handles:
 - Secure `.env` generation
 - Global `content-cat` CLI command
 
-### Global CLI Commands
+### Running the App
 
-After install, users can run:
+After install, just run:
 ```bash
-content-cat start       # Start dev server
-content-cat docker      # Start with Docker (production)
-content-cat docker:db   # Start database services only
-content-cat update      # Pull latest and update deps
-content-cat stop        # Stop all services
-content-cat db:studio   # Open Prisma Studio
-content-cat help        # Show all commands
+content-cat
 ```
+
+This automatically:
+- Starts Docker if not running (macOS)
+- Starts PostgreSQL and Redis containers
+- Launches the dev server at http://localhost:3000
 
 ### Docker Deployment
 
