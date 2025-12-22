@@ -1,6 +1,6 @@
 # Content Cat
 
-AI-powered image and video generation platform with a visual workflow builder for creating stunning visuals and cinematic content.
+AI-powered image and video generation platform with a visual node-based workflow builder for creating stunning visuals and cinematic content.
 
 ## Project Structure
 
@@ -11,46 +11,49 @@ src/
 │   │   ├── auth/           # Authentication (login, logout, session)
 │   │   ├── characters/     # Character CRUD
 │   │   ├── files/          # File operations
-│   │   ├── generate-image/ # Image generation
-│   │   ├── generate-video/ # Video generation
+│   │   ├── generate-image/ # Image generation via FAL.ai
+│   │   ├── generate-video/ # Video generation via FAL.ai
 │   │   ├── images/         # Image management
 │   │   ├── products/       # Product management
 │   │   ├── upload/         # File upload handler
-│   │   ├── video-edit/     # Video editing
+│   │   ├── video-edit/     # Video editing operations
 │   │   ├── videos/         # Video management
-│   │   └── workflows/      # Workflow management
+│   │   └── workflows/      # Workflow CRUD & execution
 │   ├── create-character/   # Character creation page
 │   ├── image/              # Image generation UI
 │   ├── video/              # Video generation UI
-│   ├── workflow/           # Workflow builder UI
+│   ├── workflow/           # Visual workflow builder
 │   └── layout.tsx          # Root layout
 ├── components/             # React components
 │   ├── workflow/           # Workflow editor components
-│   │   ├── nodes/          # Node types
+│   │   ├── nodes/          # Node type components
 │   │   ├── edges/          # Edge/connection components
-│   │   └── properties/     # Property panels
+│   │   └── properties/     # Property panel components
 │   ├── video/              # Video-related components
 │   └── image/              # Image-related components
 ├── lib/                    # Utilities & services
 │   ├── api/                # API client utilities
 │   ├── fal/                # FAL.ai integration
-│   ├── services/           # Business logic
+│   ├── services/           # Business logic layer
 │   ├── utils/              # General utilities
 │   └── video-editor/       # Video editing utilities
 ├── hooks/                  # Custom React hooks
 └── types/                  # TypeScript definitions
 prisma/                     # Database schema & migrations
+scripts/                    # Install & setup scripts
+.github/workflows/          # CI/CD workflows
 ```
 
 ## Tech Stack
 
-- **Framework**: Next.js 16 (App Router), React 19, TypeScript
-- **Database**: PostgreSQL with Prisma ORM
-- **AI Services**: FAL.ai for image/video generation
-- **Workflow**: @xyflow/react, @dagrejs/dagre
-- **Canvas**: Konva, react-konva
+- **Framework**: Next.js 16 (App Router), React 19, TypeScript 5
+- **Database**: PostgreSQL with Prisma 7 ORM
+- **AI Services**: FAL.ai (@fal-ai/client) for image/video generation
+- **Workflow**: @xyflow/react for visual node editor, @dagrejs/dagre for layout
+- **Canvas/3D**: Konva, react-konva, Three.js (@react-three/fiber)
 - **Styling**: Tailwind CSS 4
 - **Caching**: Redis (ioredis)
+- **Validation**: Zod 4
 
 ## Organization Rules
 

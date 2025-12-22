@@ -29,7 +29,7 @@ const ImageCard = memo(function ImageCard({
 
   return (
     <div
-      className="grid-item-perf group relative size-full cursor-pointer overflow-hidden rounded-lg border border-white/10"
+      className="grid-item-perf group relative size-full cursor-pointer overflow-hidden border border-white/10"
       onClick={onClick}
     >
       {/* Skeleton - fades out when loaded */}

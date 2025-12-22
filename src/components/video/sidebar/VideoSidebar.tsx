@@ -8,14 +8,12 @@ import type {
   VideoResolution,
   VideoModelConfig,
 } from "@/lib/fal";
-import { SparkleIcon } from "../icons";
 import CreateVideoForm from "./CreateVideoForm";
 
 interface VideoSidebarProps {
   // Video generation state
   videoState: VideoGenerationState;
   modelConfig: VideoModelConfig;
-  credits: number;
   isGenerating: boolean;
   // Image upload state
   startImageUrl: string | null;
@@ -41,7 +39,6 @@ interface VideoSidebarProps {
 export default function VideoSidebar({
   videoState,
   modelConfig,
-  credits,
   isGenerating,
   startImageUrl,
   endImageUrl,
@@ -99,13 +96,7 @@ export default function VideoSidebar({
               Generating...
             </>
           ) : (
-            <>
-              Generate
-              <div className="flex items-center gap-0.5">
-                <SparkleIcon />
-                {credits}
-              </div>
-            </>
+            "Generate"
           )}
         </button>
       </div>

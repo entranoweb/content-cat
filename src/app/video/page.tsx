@@ -38,7 +38,6 @@ function VideoPageContent() {
   const {
     videoState,
     modelConfig,
-    credits,
     pendingCount,
     isGenerating,
     updateVideoState,
@@ -115,7 +114,6 @@ function VideoPageContent() {
         <VideoSidebar
           videoState={videoState}
           modelConfig={modelConfig}
-          credits={credits}
           isGenerating={isGenerating}
           startImageUrl={startImageUrl}
           endImageUrl={endImageUrl}

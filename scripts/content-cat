@@ -255,9 +255,32 @@ main() {
     cd "$INSTALL_DIR"
 
     # Banner
+    clear
     echo ""
-    printf "  ${BR_MAGENTA}${BOLD}Content Cat${RESET} ${BR_CYAN}🐱${RESET}  ${DIM}by${RESET} ${BR_WHITE}Ken Kai${RESET}\n"
-    printf "  ${BR_BLACK}────────────────────────────────────────${RESET}\n"
+    printf "${BR_MAGENTA}"
+    cat << 'EOF'
+   ██████╗ ██████╗ ███╗   ██╗████████╗███████╗███╗   ██╗████████╗
+  ██╔════╝██╔═══██╗████╗  ██║╚══██╔══╝██╔════╝████╗  ██║╚══██╔══╝
+  ██║     ██║   ██║██╔██╗ ██║   ██║   █████╗  ██╔██╗ ██║   ██║
+  ██║     ██║   ██║██║╚██╗██║   ██║   ██╔══╝  ██║╚██╗██║   ██║
+  ╚██████╗╚██████╔╝██║ ╚████║   ██║   ███████╗██║ ╚████║   ██║
+   ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   ╚══════╝╚═╝  ╚═══╝   ╚═╝
+EOF
+    printf "${RESET}"
+    printf "${BR_CYAN}"
+    cat << 'EOF'
+   ██████╗ █████╗ ████████╗
+  ██╔════╝██╔══██╗╚══██╔══╝
+  ██║     ███████║   ██║
+  ██║     ██╔══██║   ██║
+  ╚██████╗██║  ██║   ██║
+   ╚═════╝╚═╝  ╚═╝   ╚═╝
+EOF
+    printf "${RESET}"
+    echo ""
+    printf "  ${DIM}Open in browser:${RESET}  ${BR_WHITE}http://localhost:3000${RESET}\n"
+    echo ""
+    printf "  ${BR_BLACK}─────────────────────────────────────────────────────────────────${RESET}\n"
     echo ""
 
     # Setup
@@ -269,17 +292,6 @@ main() {
         sleep 1
         ensure_schema
     fi
-
-    # Launch
-    echo ""
-    printf "  ${BR_BLACK}────────────────────────────────────────${RESET}\n"
-    echo ""
-    printf "  ${BR_GREEN}▶${RESET} ${BOLD}Starting...${RESET}\n"
-    echo ""
-    printf "    ${BR_WHITE}http://localhost:3000${RESET}\n"
-    echo ""
-    printf "    ${DIM}Press Ctrl+C to stop${RESET}\n"
-    echo ""
 
     exec pnpm dev
 }

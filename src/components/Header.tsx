@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import ApiKeysModal from "./ApiKeysModal";
+import { apiFetch } from "@/lib/csrf";
 
 const navItems = [
   { label: "Image", href: "/image" },
@@ -58,6 +59,35 @@ const ExternalLinkIcon = () => (
 
 export default function Header() {
   const [isApiKeysModalOpen, setIsApiKeysModalOpen] = useState(false);
+  const [hasFalKey, setHasFalKey] = useState(false);
+
+  // Fetch API keys on mount and when modal closes
+  useEffect(() => {
+    // Skip fetch while modal is open (will refetch when it closes)
+    if (isApiKeysModalOpen) return;
+
+    let cancelled = false;
+
+    apiFetch("/api/api-keys")
+      .then((response) => {
+        if (!response.ok || cancelled) return null;
+        return response.json();
+      })
+      .then((keys) => {
+        if (cancelled || !keys) return;
+        const falKey = keys.find(
+          (key: { service: string }) => key.service === "fal"
+        );
+        setHasFalKey(!!falKey);
+      })
+      .catch(() => {
+        // Silently fail - button will show "Get Key" by default
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isApiKeysModalOpen]);
 
   return (
     <>
@@ -97,12 +127,16 @@ export default function Header() {
             API Keys
           </button>
           <a
-            href="https://fal.ai/dashboard/billing"
+            href={
+              hasFalKey
+                ? "https://fal.ai/dashboard/billing"
+                : "https://fal.ai/dashboard/keys"
+            }
             target="_blank"
             rel="noopener noreferrer"
             className="btn-primary-sm"
           >
-            Top Up
+            {hasFalKey ? "Top Up" : "Get Key"}
             <ExternalLinkIcon />
           </a>
         </div>

@@ -20,7 +20,7 @@ export default async function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(135deg, #22d3ee 0%, #0891b2 100%)",
+          background: "#f472b6",
           borderRadius: "6px",
         }}
       >
