@@ -6,6 +6,7 @@ import SelectDropdown from "@/components/SelectDropdown";
 import {
   PlusIcon,
   MinusIcon,
+  SparkleIcon,
   CloseIcon,
   ResolutionIcon,
   FormatIcon,
@@ -599,7 +600,12 @@ export default function ImagePromptForm({
             tabIndex={-1}
             className="inline-grid h-full w-36 grid-flow-col items-center justify-center gap-2 rounded-lg bg-pink-400 px-2.5 text-sm font-semibold text-black shadow-[0_4px_0_0_#be185d] transition-all duration-150 hover:bg-pink-500 hover:shadow-[0_4px_0_0_#9d174d] focus:outline-none active:translate-y-0.5 active:shadow-[0_2px_0_0_#be185d] disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400 disabled:shadow-[0_4px_0_0_#3f3f46]"
           >
-            {isImagesLoading ? "Uploading..." : "Generate"}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold">
+                {isImagesLoading ? "Uploading..." : "Generate"}
+              </span>
+              <SparkleIcon />
+            </div>
           </button>
         </aside>
       </fieldset>

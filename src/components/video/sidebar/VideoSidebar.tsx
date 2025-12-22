@@ -8,6 +8,7 @@ import type {
   VideoResolution,
   VideoModelConfig,
 } from "@/lib/fal";
+import { SparkleIcon } from "../icons";
 import CreateVideoForm from "./CreateVideoForm";
 
 interface VideoSidebarProps {
@@ -96,7 +97,10 @@ export default function VideoSidebar({
               Generating...
             </>
           ) : (
-            "Generate"
+            <>
+              Generate
+              <SparkleIcon />
+            </>
           )}
         </button>
       </div>
