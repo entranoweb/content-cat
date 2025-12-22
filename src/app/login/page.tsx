@@ -1,16 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [checkingSetup, setCheckingSetup] = useState(true);
+
+  // Get redirect destination from query params
+  const redirectTo = searchParams.get("from") || "/";
 
   // Check if setup is needed - redirect if no users exist
   useEffect(() => {
@@ -49,8 +53,8 @@ export default function LoginPage() {
         return;
       }
 
-      // Redirect to home page on success
-      router.push("/");
+      // Redirect to original page or home on success
+      router.push(redirectTo);
       router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");
@@ -155,5 +159,19 @@ export default function LoginPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center">
+          <div className="text-zinc-400">Loading...</div>
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }
