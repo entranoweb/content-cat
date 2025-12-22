@@ -314,8 +314,8 @@ install_docker() {
 clone_repo() {
     if [[ -d "$INSTALL_DIR" ]]; then
         if [[ -f "$INSTALL_DIR/package.json" ]] && grep -q '"name": "content-cat"' "$INSTALL_DIR/package.json" 2>/dev/null; then
-            ok "Repository exists"
             cd "$INSTALL_DIR"
+            run_step "Updating Content Cat" bash -c "git fetch origin main && git reset --hard origin/main"
             return 0
         fi
         rm -rf "$INSTALL_DIR"
