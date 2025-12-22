@@ -300,7 +300,6 @@ const nodeItems: NodeItem[] = [
     icon: <FileIcon />,
     category: "Input",
   },
-  { type: "prompt", label: "Prompt", icon: <EditIcon />, category: "Input" },
   {
     type: "kling26",
     label: "Kling 2.6 Pro",
@@ -317,6 +316,12 @@ const nodeItems: NodeItem[] = [
   {
     type: "nanoBananaPro",
     label: "Nano Banana Pro",
+    icon: <ImageIcon />,
+    category: "Image",
+  },
+  {
+    type: "seedream45",
+    label: "Seedream 4.5",
     icon: <ImageIcon />,
     category: "Image",
   },
@@ -464,6 +469,7 @@ export default function WorkflowBottomToolbar({
         nodeHeight = 400;
       } else if (
         node.type === "nanoBananaPro" ||
+        node.type === "seedream45" ||
         node.type === "kling26" ||
         node.type === "kling25Turbo" ||
         node.type === "wan26" ||
@@ -1061,8 +1067,6 @@ function getDefaultNodeData(type: NodeType) {
   switch (type) {
     case "imageInput":
       return { label: "Image Input" };
-    case "prompt":
-      return { label: "Prompt", prompt: "" };
     case "model":
       return { label: "Model", modelId: "", modelName: "" };
     case "output":
@@ -1103,6 +1107,15 @@ function getDefaultNodeData(type: NodeType) {
         outputFormat: "png",
         numImages: 1,
         enableWebSearch: false,
+        enableSafetyChecker: true,
+      };
+    case "seedream45":
+      return {
+        label: "Seedream 4.5",
+        prompt: "",
+        mode: "text-to-image",
+        outputFormat: "png",
+        numImages: 1,
         enableSafetyChecker: true,
       };
     case "videoConcat":

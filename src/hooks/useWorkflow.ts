@@ -419,8 +419,6 @@ function getDefaultNodeData(type: NodeType): WorkflowNode["data"] {
   switch (type) {
     case "imageInput":
       return { label: "Image Input" };
-    case "prompt":
-      return { label: "Prompt", prompt: "" };
     case "model":
       return { label: "Model", modelId: "", modelName: "" };
     case "output":
@@ -465,6 +463,16 @@ function getDefaultNodeData(type: NodeType): WorkflowNode["data"] {
         outputFormat: "png",
         numImages: 1,
         enableWebSearch: false,
+        enableSafetyChecker: true,
+      };
+    case "seedream45":
+      return {
+        label: "Seedream 4.5",
+        prompt: "",
+        mode: "text-to-image",
+        aspectRatio: "1:1",
+        outputFormat: "png",
+        numImages: 1,
         enableSafetyChecker: true,
       };
     case "videoConcat":

@@ -7,6 +7,7 @@ import type { Node } from "@xyflow/react";
 // Node types that support execution (generation and editing nodes)
 const EXECUTABLE_NODE_TYPES = new Set([
   "nanoBananaPro",
+  "seedream45",
   "kling26",
   "kling25Turbo",
   "wan26",

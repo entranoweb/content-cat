@@ -8,13 +8,13 @@ export type { InteractionMode } from "./WorkflowContext";
 export {
   BaseNode,
   ImageInputNode,
-  PromptNode,
   ModelNode,
   OutputNode,
   PreviewNode,
   Kling26Node,
   Kling25TurboNode,
   Wan26Node,
+  Seedream45Node,
 } from "./nodes";
 
 // Types - explicitly export to avoid collision with component names
@@ -28,6 +28,7 @@ export type {
   Kling26NodeData,
   Kling25TurboNodeData,
   Wan26NodeData,
+  Seedream45NodeData,
   WorkflowNode,
   WorkflowNodeData,
   WorkflowEdge,

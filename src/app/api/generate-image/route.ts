@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import {
   createNanoBananaProClient,
+  createSeedream45Client,
   parseFalError,
   type NanoBananaProAspectRatio,
   type NanoBananaProResolution,
   type NanoBananaProOutputFormat,
+  type Seedream45AspectRatio,
+  type Seedream45OutputFormat,
 } from "@/lib/fal";
 import { getApiKey } from "@/lib/services/apiKeyService";
 import {
@@ -22,13 +25,18 @@ import { resolveImageForFal } from "@/lib/storage";
 // Zod schema for image generation request
 const generateImageSchema = z.object({
   prompt: z.string().min(1, "Prompt is required").max(2500, "Prompt too long"),
-  aspectRatio: z.enum(["1:1", "16:9", "9:16", "4:3", "3:4", "21:9", "9:21"]).default("1:1"),
+  model: z.enum(["nano-banana-pro", "seedream-4.5"]).default("nano-banana-pro"),
+  aspectRatio: z.enum(["1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3", "21:9", "9:21"]).default("1:1"),
   resolution: z.enum(["1K", "2K"]).default("1K"),
   outputFormat: z.enum(["png", "jpeg", "webp"]).default("png"),
-  imageUrls: z.array(z.string()).max(4, "Maximum 4 reference images").optional(),
-  numImages: z.number().int().min(1).max(4).default(1),
+  imageUrls: z.array(z.string()).max(10, "Maximum 10 reference images").optional(),
+  numImages: z.number().int().min(1).max(6).default(1),
   enableWebSearch: z.boolean().default(false),
   enableSafetyChecker: z.boolean().default(true),
+  // Seedream 4.5 specific parameters
+  strength: z.number().min(0).max(1).optional(),
+  guidanceScale: z.number().min(1).max(20).optional(),
+  seed: z.number().int().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -69,6 +77,7 @@ export async function POST(request: NextRequest) {
 
     const {
       prompt,
+      model,
       aspectRatio,
       resolution,
       outputFormat,
@@ -76,6 +85,9 @@ export async function POST(request: NextRequest) {
       numImages,
       enableWebSearch,
       enableSafetyChecker,
+      strength,
+      guidanceScale,
+      seed,
     } = parseResult.data;
 
     // Resolve local file URLs to base64 for FAL.ai
@@ -115,15 +127,68 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = createNanoBananaProClient(apiKey);
-
     // Check if this is an edit request (has image URLs)
     const hasImages = resolvedImageUrls.length > 0;
+
+    // Handle Seedream 4.5 model
+    if (model === "seedream-4.5") {
+      const seedreamClient = createSeedream45Client(apiKey);
+
+      if (hasImages) {
+        // Image editing mode with reference images
+        const result = await withTimeout(
+          seedreamClient.editImage({
+            prompt,
+            image_urls: resolvedImageUrls,
+            aspect_ratio: (aspectRatio || "1:1") as Seedream45AspectRatio,
+            output_format: (outputFormat || "png") as Seedream45OutputFormat,
+            num_images: numImages || 1,
+            enable_safety_checker: enableSafetyChecker ?? true,
+            strength: strength,
+            guidance_scale: guidanceScale,
+            seed: seed,
+          }),
+          TIMEOUTS.IMAGE_GENERATION,
+          "Image generation timed out. Please try again."
+        );
+
+        return NextResponse.json({
+          success: true,
+          images: result.images,
+          resultUrls: result.images.map((img) => img.url),
+          seed: result.seed,
+        });
+      } else {
+        // Text-to-image mode
+        const result = await withTimeout(
+          seedreamClient.generateImage({
+            prompt,
+            aspect_ratio: (aspectRatio || "1:1") as Seedream45AspectRatio,
+            output_format: (outputFormat || "png") as Seedream45OutputFormat,
+            num_images: numImages || 1,
+            enable_safety_checker: enableSafetyChecker ?? true,
+            seed: seed,
+          }),
+          TIMEOUTS.IMAGE_GENERATION,
+          "Image generation timed out. Please try again."
+        );
+
+        return NextResponse.json({
+          success: true,
+          images: result.images,
+          resultUrls: result.images.map((img) => img.url),
+          seed: result.seed,
+        });
+      }
+    }
+
+    // Handle Nano Banana Pro model (default)
+    const nanoBananaClient = createNanoBananaProClient(apiKey);
 
     if (hasImages) {
       // Image editing mode with reference images (with timeout)
       const result = await withTimeout(
-        client.editImage({
+        nanoBananaClient.editImage({
           prompt,
           image_urls: resolvedImageUrls,
           aspect_ratio: (aspectRatio || "auto") as NanoBananaProAspectRatio,
@@ -146,7 +211,7 @@ export async function POST(request: NextRequest) {
     } else {
       // Text-to-image mode (with timeout)
       const result = await withTimeout(
-        client.generateImage({
+        nanoBananaClient.generateImage({
           prompt,
           aspect_ratio: (aspectRatio || "1:1") as NanoBananaProAspectRatio,
           resolution: (resolution || "1K") as NanoBananaProResolution,

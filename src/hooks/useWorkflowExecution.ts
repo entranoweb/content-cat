@@ -10,6 +10,7 @@ import type {
   FileNodeData,
   ImageInputNodeData,
   NanoBananaProNodeData,
+  Seedream45NodeData,
   Kling26NodeData,
   Kling25TurboNodeData,
   Wan26NodeData,
@@ -153,6 +154,7 @@ interface ExecutionState {
 // Node types that can be executed
 const EXECUTABLE_NODE_TYPES = new Set([
   "nanoBananaPro",
+  "seedream45",
   "kling26",
   "kling25Turbo",
   "wan26",
@@ -220,7 +222,7 @@ export function useWorkflowExecution() {
     (inputs: ConnectedInput[]): string | undefined => {
       // First check for direct prompt connections
       const promptInput = inputs.find(
-        (input) => input.handleType === "prompt" || input.nodeType === "prompt"
+        (input) => input.handleType === "prompt"
       );
 
       if (promptInput) {
@@ -245,7 +247,8 @@ export function useWorkflowExecution() {
           input.handleType === "result" ||
           input.nodeType === "imageInput" ||
           input.nodeType === "file" ||
-          input.nodeType === "nanoBananaPro"
+          input.nodeType === "nanoBananaPro" ||
+          input.nodeType === "seedream45"
       );
 
       if (imageInput) {
@@ -259,6 +262,10 @@ export function useWorkflowExecution() {
         }
         if (imageInput.nodeType === "nanoBananaPro") {
           const data = imageInput.data as NanoBananaProNodeData;
+          return data.imageUrl;
+        }
+        if (imageInput.nodeType === "seedream45") {
+          const data = imageInput.data as Seedream45NodeData;
           return data.imageUrl;
         }
         // For other node types that might have imageUrl
@@ -470,6 +477,121 @@ export function useWorkflowExecution() {
       } catch {
         updateNodeData(nodeId, { isGenerating: false });
         throw new Error("Image generation failed");
+      }
+    },
+    [extractPrompt, extractImageUrl, updateNodeData, fetchCharacterImages, fetchProductImages]
+  );
+
+  /**
+   * Execute Seedream 4.5 (image generation) node
+   */
+  const executeSeedream45 = useCallback(
+    async (
+      nodeId: string,
+      nodeData: Seedream45NodeData,
+      inputs: ConnectedInput[]
+    ): Promise<ExecutionResult> => {
+      const prompt = extractPrompt(inputs) || nodeData.prompt;
+      let imageUrl = extractImageUrl(inputs);
+
+      if (!prompt) {
+        return {
+          success: false,
+          error: "No prompt provided. Connect a Prompt node or enter a prompt.",
+        };
+      }
+
+      // Collect all reference image URLs
+      const allImageUrls: string[] = [];
+
+      // Fetch character reference images if a character is selected
+      if (nodeData.characterId) {
+        const charImages = await fetchCharacterImages(nodeData.characterId);
+        allImageUrls.push(...charImages);
+      }
+
+      // Fetch product reference images if a product is selected
+      if (nodeData.productId) {
+        const prodImages = await fetchProductImages(nodeData.productId);
+        allImageUrls.push(...prodImages);
+      }
+
+      // Convert local file URLs to data URLs for fal.ai
+      if (imageUrl) {
+        try {
+          imageUrl = await convertToDataUrl(imageUrl);
+          allImageUrls.push(imageUrl);
+        } catch {
+          return { success: false, error: "Failed to process reference image" };
+        }
+      }
+
+      // Set generating state
+      updateNodeData(nodeId, { isGenerating: true });
+
+      // Build payload - Seedream 4.5 uses different API
+      const payload = {
+        prompt,
+        model: "seedream-4.5",
+        aspectRatio: nodeData.aspectRatio || "1:1",
+        outputFormat: nodeData.outputFormat || "png",
+        numImages: nodeData.numImages || 1,
+        enableSafetyChecker: nodeData.enableSafetyChecker ?? true,
+        imageUrls: allImageUrls.length > 0 ? allImageUrls : undefined,
+        // Seedream-specific parameters
+        strength: nodeData.strength,
+        guidanceScale: nodeData.guidanceScale,
+        seed: nodeData.seed,
+      };
+
+      try {
+        const response = await apiFetch("/api/generate-image", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          timeout: 120000, // 2 minutes for image generation
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          updateNodeData(nodeId, { isGenerating: false });
+          return {
+            success: false,
+            error: result.error || "Image generation failed",
+          };
+        }
+
+        // Update node with generated image
+        const generatedImageUrl =
+          result.resultUrls?.[0] || result.images?.[0]?.url;
+        updateNodeData(nodeId, {
+          imageUrl: generatedImageUrl || nodeData.imageUrl,
+          isGenerating: false,
+        });
+
+        // Save the generated image to the database so it appears in assets
+        if (generatedImageUrl) {
+          try {
+            await apiFetch("/api/images", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                url: generatedImageUrl,
+                prompt,
+                aspectRatio: nodeData.aspectRatio || "1:1",
+              }),
+            });
+          } catch (saveError) {
+            console.error("[Execution] Failed to save image to database:", saveError);
+            // Don't fail the execution if saving fails - the image was still generated
+          }
+        }
+
+        return { success: true, data: result };
+      } catch {
+        updateNodeData(nodeId, { isGenerating: false });
+        throw new Error("Seedream 4.5 image generation failed");
       }
     },
     [extractPrompt, extractImageUrl, updateNodeData, fetchCharacterImages, fetchProductImages]
@@ -1173,6 +1295,14 @@ export function useWorkflowExecution() {
             );
             break;
 
+          case "seedream45":
+            result = await executeSeedream45(
+              nodeId,
+              nodeData as Seedream45NodeData,
+              inputs
+            );
+            break;
+
           case "kling26":
             result = await executeKling26(
               nodeId,
@@ -1260,6 +1390,7 @@ export function useWorkflowExecution() {
       getNodes,
       getConnectedInputs,
       executeNanoBananaPro,
+      executeSeedream45,
       executeKling26,
       executeKling25Turbo,
       executeWan26,
@@ -1529,6 +1660,14 @@ export function useWorkflowExecution() {
       switch (node.type) {
         case "nanoBananaPro": {
           const nodeData = node.data as NanoBananaProNodeData;
+          if (!prompt && !nodeData.prompt) {
+            return { canExecute: false, reason: "Connect a Prompt node" };
+          }
+          return { canExecute: true };
+        }
+
+        case "seedream45": {
+          const nodeData = node.data as Seedream45NodeData;
           if (!prompt && !nodeData.prompt) {
             return { canExecute: false, reason: "Connect a Prompt node" };
           }

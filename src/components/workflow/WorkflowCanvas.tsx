@@ -13,7 +13,6 @@ import "@xyflow/react/dist/style.css";
 
 import {
   ImageInputNode,
-  PromptNode,
   ModelNode,
   OutputNode,
   PreviewNode,
@@ -23,6 +22,7 @@ import {
   Kling25TurboNode,
   Wan26Node,
   NanoBananaProNode,
+  Seedream45Node,
   VideoConcatNode,
   VideoSubtitlesNode,
   VideoTrimNode,
@@ -45,7 +45,6 @@ import type { NodeChange, EdgeChange, Connection } from "@xyflow/react";
 // Register custom node types - defined outside component to prevent recreation
 const nodeTypes: NodeTypes = {
   imageInput: ImageInputNode,
-  prompt: PromptNode,
   model: ModelNode,
   output: OutputNode,
   preview: PreviewNode,
@@ -55,6 +54,7 @@ const nodeTypes: NodeTypes = {
   kling25Turbo: Kling25TurboNode,
   wan26: Wan26Node,
   nanoBananaPro: NanoBananaProNode,
+  seedream45: Seedream45Node,
   videoConcat: VideoConcatNode,
   videoSubtitles: VideoSubtitlesNode,
   videoTrim: VideoTrimNode,

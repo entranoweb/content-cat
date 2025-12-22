@@ -130,6 +130,32 @@ export {
   MAX_SEED as WAN_26_MAX_SEED,
 } from "./wan-2.6";
 
+// Seedream 4.5 - Image generation
+export {
+  // Client
+  Seedream45Client,
+  createSeedream45Client,
+  // Model IDs
+  SEEDREAM_45_MODEL,
+  SEEDREAM_45_EDIT_MODEL,
+  // Types
+  type Seedream45AspectRatio,
+  type Seedream45OutputFormat,
+  type Seedream45ImageSize,
+  type Seedream45Input,
+  type Seedream45EditInput,
+  type Seedream45Output,
+  // Constants
+  SEEDREAM_45_ASPECT_RATIOS,
+  SEEDREAM_45_OUTPUT_FORMATS,
+  SEEDREAM_45_DEFAULT_ASPECT_RATIO,
+  SEEDREAM_45_DEFAULT_OUTPUT_FORMAT,
+  SEEDREAM_45_MAX_PROMPT_LENGTH,
+  SEEDREAM_45_MAX_REFERENCE_IMAGES,
+  SEEDREAM_45_MAX_IMAGE_SIZE_MB,
+  SEEDREAM_45_MAX_DIMENSION,
+} from "./seedream-4.5";
+
 // Video Configuration - UI to API mapping
 export {
   // Types

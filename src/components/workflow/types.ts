@@ -109,6 +109,35 @@ export interface NanoBananaProNodeData extends BaseNodeData {
   productId?: string;
 }
 
+// Seedream 4.5 (Image Generation) node data type
+export interface Seedream45NodeData extends BaseNodeData {
+  prompt?: string;
+  imageUrl?: string;
+  isGenerating?: boolean;
+  mode?: "text-to-image" | "image-edit";
+  aspectRatio?:
+    | "1:1"
+    | "16:9"
+    | "9:16"
+    | "4:3"
+    | "3:4"
+    | "3:2"
+    | "2:3"
+    | "21:9"
+    | "9:21";
+  outputFormat?: "png" | "jpeg" | "webp";
+  numImages?: number;
+  strength?: number;
+  guidanceScale?: number;
+  seed?: number;
+  enableSafetyChecker?: boolean;
+  // Number of reference image inputs (5-10, default 5)
+  inputCount?: number;
+  // Selected character and product for reference images
+  characterId?: string;
+  productId?: string;
+}
+
 // Video Concat node data type
 export type TransitionType =
   | "none"
@@ -193,6 +222,7 @@ export type WorkflowNodeData =
   | Kling25TurboNodeData
   | Wan26NodeData
   | NanoBananaProNodeData
+  | Seedream45NodeData
   | VideoConcatNodeData
   | VideoSubtitlesNodeData
   | VideoTrimNodeData
@@ -207,7 +237,6 @@ export type WorkflowEdge = Edge;
 // Node types available in the workflow
 export type NodeType =
   | "imageInput"
-  | "prompt"
   | "model"
   | "output"
   | "preview"
@@ -217,6 +246,7 @@ export type NodeType =
   | "kling25Turbo"
   | "wan26"
   | "nanoBananaPro"
+  | "seedream45"
   | "videoConcat"
   | "videoSubtitles"
   | "videoTrim"
