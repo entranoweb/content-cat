@@ -73,6 +73,11 @@ function prompt(question: string): Promise<string> {
 }
 
 async function main() {
+  // Support CLI arguments: pnpm reset-password [email] [password]
+  const args = process.argv.slice(2);
+  const argEmail = args[0];
+  const argPassword = args[1];
+
   console.log("\n\x1b[35m🔐 Content Cat Password Reset\x1b[0m\n");
 
   const { prisma, pool } = createPrismaClient();
@@ -98,17 +103,26 @@ async function main() {
     });
     console.log();
 
-    // Get email
-    const emailInput = await prompt(
-      "Enter email to reset (or number from list): "
-    );
-
+    // Get email from args or prompt
     let email: string;
-    const num = parseInt(emailInput);
-    if (!isNaN(num) && num >= 1 && num <= users.length) {
-      email = users[num - 1].email;
+    if (argEmail) {
+      const num = parseInt(argEmail);
+      if (!isNaN(num) && num >= 1 && num <= users.length) {
+        email = users[num - 1].email;
+      } else {
+        email = argEmail;
+      }
+      console.log(`Selected: ${email}\n`);
     } else {
-      email = emailInput;
+      const emailInput = await prompt(
+        "Enter email to reset (or number from list): "
+      );
+      const num = parseInt(emailInput);
+      if (!isNaN(num) && num >= 1 && num <= users.length) {
+        email = users[num - 1].email;
+      } else {
+        email = emailInput;
+      }
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
@@ -117,8 +131,8 @@ async function main() {
       return;
     }
 
-    // Get new password
-    const newPassword = await prompt("Enter new password: ");
+    // Get new password from args or prompt
+    const newPassword = argPassword || (await prompt("Enter new password: "));
 
     if (newPassword.length < 8) {
       console.log("\n\x1b[31m✗ Password must be at least 8 characters\x1b[0m\n");
