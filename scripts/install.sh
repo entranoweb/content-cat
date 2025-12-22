@@ -54,6 +54,11 @@ command_exists() {
     command -v "$1" &>/dev/null
 }
 
+# Check if running interactively (not piped)
+is_interactive() {
+    [[ -t 0 ]] && [[ -t 1 ]]
+}
+
 # Hide/show cursor
 hide_cursor() { tput civis 2>/dev/null || true; }
 show_cursor() { tput cnorm 2>/dev/null || true; }
@@ -108,7 +113,7 @@ run_step() {
 
 # Print step header
 step() {
-    ((CURRENT_STEP++))
+    ((CURRENT_STEP++)) || true
     echo ""
     printf "  ${BOLD}${WHITE}[%d/%d]${RESET} ${BOLD}%s${RESET}\n" "$CURRENT_STEP" "$TOTAL_STEPS" "$1"
     echo ""
@@ -125,7 +130,10 @@ fail() { printf "    ${BR_RED}✗${RESET} %s\n" "$1"; }
 # ══════════════════════════════════════════════════════════════════════════════
 
 print_banner() {
-    clear
+    # Only clear screen if running interactively
+    if is_interactive; then
+        clear
+    fi
     echo ""
     echo ""
     printf "${BR_MAGENTA}"
@@ -194,7 +202,8 @@ install_homebrew() {
         return 0
     fi
 
-    run_step "Homebrew" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    # Use NONINTERACTIVE mode for piped execution
+    run_step "Homebrew" bash -c 'NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
 
     # Add to PATH
     if [[ -f /opt/homebrew/bin/brew ]]; then
